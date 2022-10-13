@@ -47,12 +47,13 @@ def crawl():
         tmp_table = get_table(l)
         df = pd.concat([df,tmp_table], axis = 1)
     print(df)
-    return df
+    return df.T.drop_duplicates().T
 
 
 
 if __name__ == '__main__':
     df = crawl()
+    print(df)
     df.to_csv("data/sale_hist.csv")
 
 
