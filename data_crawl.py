@@ -5,19 +5,6 @@ from bs4 import BeautifulSoup
 
 import matplotlib.pyplot as plt
 
-
-# #LVMH Stock Price
-# LVMH = yf.Ticker("LVMUY")
-# hist = LVMH.history(period="max")
-# lvmh_stock = pd.DataFrame(hist).reset_index()
-#
-# lvmh_stock.to_csv("data/lvmh_stock.csv")
-#
-#
-# #LVMH income statement
-# lvmh_financials = LVMH.get_financials()
-# lvmh_financials.to_csv("data/lvmh_financials.csv")
-
 #LVMH sale history
 def get_quarterly_report_links():
 
@@ -52,8 +39,23 @@ def crawl():
 
 
 if __name__ == '__main__':
+    #LVMH sale history by categories
     df = crawl()
     print(df)
     df.to_csv("data/sale_hist.csv")
+
+    #LVMH Stock Price
+    LVMH = yf.Ticker("LVMUY")
+    hist = LVMH.history(period="max")
+    lvmh_stock = pd.DataFrame(hist).reset_index()
+
+    lvmh_stock.to_csv("data/lvmh_stock.csv")
+
+
+    #LVMH income statement
+    lvmh_financials = LVMH.get_financials()
+    lvmh_financials.to_csv("data/lvmh_financials.csv")
+
+
 
 
