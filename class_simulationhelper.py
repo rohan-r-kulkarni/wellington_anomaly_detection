@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from collections.abc import Iterable
-import warnings
+import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 class SimulationHelpers:
