@@ -159,7 +159,13 @@ class BaseSimulation:
             return self.__overlay(process, super_process)
 
     def add_regime_change(
-        self, process, event_index, shift, perturb=False, perturb_func=lambda x: 0
+        self, 
+        process, 
+        event_index, 
+        shift, 
+        regime_limit: int=None,
+        perturb=False, 
+        perturb_func=lambda x: 0
     ):
         super_process = np.zeros_like(process)
         if isinstance(shift, (int, float)):
@@ -180,8 +186,13 @@ class BaseSimulation:
             )
         if perturb:
             shift += perturb_func(shift)
+
         super_process[event_index:] = shift
 
+        if regime_limit:
+            if event_index + regime_limit < len(super_process):
+                super_process[event_index+regime_limit+1:] = 0
+        
         return self.__overlay(process, super_process)
 
 if __name__ == "__main__":
