@@ -127,9 +127,10 @@ class BaseSimulation:
         ma_window=10,
         random_seed=None,
         count=1,
-        super_process=None
+        super_process=None, 
+        list_indices=None
     ):
-        if how not in ["random", "manual"]:
+        if how not in ["random", "semi_random", "manual"]:
             warnings.warn("Invalid specification for arg 'how', default to random.")
             how = "random"
 
@@ -137,18 +138,28 @@ class BaseSimulation:
         outlier_z = np.zeros_like(process)
         if random_seed:
             np.random.seed(random_seed)
+        if "random" in how:
+            if how == "random":
+                outlier_indices = np.random.choice(
+                    list(range(ma_window - 1, len(process))), size=count
+                )
+            elif how == "semi_random":
+                if not list_indices:
+                    raise RuntimeError("Specified semi-random overlay but no list_indices is provided.")
+                for idx in list_indices:
+                    if idx not in range(ma_window - 1, len(process)):
+                        raise ValueError(f"Specified index {idx} out of valid range.")
+                outlier_indices = list_indices
+            else:
+                raise NotImplementedError(f"how = {how} not implemented.")
 
-        if how == "random":
-            outlier_indices = np.random.choice(
-                list(range(ma_window - 1, len(process))), size=count
-            )
             global actual
             actual = outlier_indices
             print(f"outlier added at indices {', '.join([str(idx) for idx in outlier_indices])}")
             outlier_z[outlier_indices] = [
                 self.get_random_z_above_thresh(thresh_z) for i in range(count)
             ]
-            # TODO: modify me to actually work in numpy. This is essentially pseudo-code.
+        
             super_process = outlier_z * pd.Series(process).rolling(ma_window).std()
             return self.__overlay(process, super_process)
         
