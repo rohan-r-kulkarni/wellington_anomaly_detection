@@ -119,37 +119,57 @@ class BaseSimulation:
         z = norm.ppf(p + norm_mult * (1 - p))
         return z * sign
 
+    def get_random_t_above_thresh(self, thresh: float, df: int):
+        distr = t(df)
+        sign = thresh > 0 - (thresh <= 0)
+        print("sign:", sign)
+        abs_thresh = np.abs(thresh)
+        print("abs_thresh:", abs_thresh)
+        p = distr.cdf(abs_thresh)
+        print("p:", p )
+        mult = distr.cdf(np.abs(np.random.standard_t(df)))-0.5
+        print("norm_mult:", mult)
+        z = distr.ppf(p + mult * (1 - p))
+        return z * sign
+
     def add_outlier(
         self,
         process,
-        thresh_z=norm.ppf(0.95),
-        how="random",
+        thresh=norm.ppf(0.95),
+        # thresh_z = 10,
+        how="full_random",
         ma_window=10,
         random_seed=None,
         count=1,
         super_process=None, 
-        list_indices=None
+        outlier_indices=None
     ):
-        if how not in ["random", "semi_random", "manual"]:
-            warnings.warn("Invalid specification for arg 'how', default to random.")
-            how = "random"
+        if how not in ["full_random", "random_mag", "manual"]:
+            warnings.warn("Invalid specification for arg 'how', default to full_random.")
+            how = "full_random"
 
         super_process = np.zeros_like(process)
         outlier_z = np.zeros_like(process)
         if random_seed:
             np.random.seed(random_seed)
         if "random" in how:
-            if how == "random":
+            if how == "full_random":
                 outlier_indices = np.random.choice(
                     list(range(ma_window - 1, len(process))), size=count
                 )
-            elif how == "semi_random":
-                if not list_indices:
-                    raise RuntimeError("Specified semi-random overlay but no list_indices is provided.")
-                for idx in list_indices:
+            elif how == "random_mag":
+                if not outlier_indices:
+                    raise RuntimeError("Specified semi-random overlay but no outlier_indices is provided.")
+                for idx in outlier_indices:
                     if idx not in range(ma_window - 1, len(process)):
                         raise ValueError(f"Specified index {idx} out of valid range.")
-                outlier_indices = list_indices
+                warnings.warn(
+                    (
+                        "Specified random_mag with fixed indices"
+                        f"{outlier_indices}. Argument 'count' overridden."
+                    )
+                )
+                count = len(outlier_indices)
             else:
                 raise NotImplementedError(f"how = {how} not implemented.")
 
@@ -157,10 +177,13 @@ class BaseSimulation:
             actual = outlier_indices
             print(f"outlier added at indices {', '.join([str(idx) for idx in outlier_indices])}")
             outlier_z[outlier_indices] = [
-                self.get_random_z_above_thresh(thresh_z) for i in range(count)
+                self.get_random_t_above_thresh(thresh, ma_window) for i in range(count)
+                # thresh_z for i in range(count)
             ]
+            
         
             super_process = outlier_z * pd.Series(process).rolling(ma_window).std()
+
             return self.__overlay(process, super_process)
         
         if how == "manual":
@@ -206,6 +229,163 @@ class BaseSimulation:
         
         return self.__overlay(process, super_process)
 
+    def correlated_processes_with_correlated_outliers(
+        self, 
+        process_func, 
+        corr, 
+        cov_mat=None, 
+        how="full_random",
+        ma_window=10,
+        random_seed=None,
+        count=1,
+        outlier_indices=None,
+        **kwargs
+    ):
+        # Introduce similar outliers to independent series 
+        # Then correlate them 
+        if how == "full_random":
+            outlier_indices = np.random.choice(
+                list(range(ma_window - 1, len(process_func(**kwargs)))), size=count
+            )
+        elif how == "random_mag":
+            if not outlier_indices:
+                raise RuntimeError("Specified semi-random overlay but no outlier_indices is provided.")
+            for idx in outlier_indices:
+                if idx not in range(ma_window - 1, len(process_func(**kwargs))):
+                    raise ValueError(f"Specified index {idx} out of valid range.")
+            warnings.warn(
+                (
+                    "Specified random_mag with fixed indices"
+                    f"{outlier_indices}. Argument 'count' overridden."
+                )
+            )
+            count = len(outlier_indices)
+
+        if corr and isinstance(corr, float): # if corr is a real number        
+            z1 = process_func(**kwargs)
+            z2 = process_func(**kwargs)
+
+            z1 = self.add_outlier(
+                z1, 
+                how="random_mag", 
+                ma_window=ma_window,
+                random_seed=random_seed,
+                outlier_indices=outlier_indices,
+            )
+            z2 = self.add_outlier(
+                z2, 
+                how="random_mag", 
+                ma_window=ma_window,
+                random_seed=random_seed,
+                outlier_indices=outlier_indices,
+            )
+
+            return z1, corr * z1 + np.sqrt(1 - corr**2) * z2
+        else: # if corr is not a real number
+            # check if a covariance matrix is passed
+            if cov_mat is None:
+                raise ValueError("Either a corr value or a cov_mat must be passed.")
+            try:
+                L = np.linalg.cholesky(cov_mat)
+            except:
+                raise ValueError("Not a valid covariance matrix.")
+
+            n = cov_mat.shape[0]
+            z = [process_func(**kwargs) for _ in range(n)]
+            z = [
+                self.add_outlier(
+                    process, 
+                    how="random_mag", 
+                    ma_window=ma_window,
+                    random_seed=random_seed,
+                    outlier_indices=outlier_indices,
+                ) for process in z
+            ]
+            helper = SimulationHelpers()
+            helper.plot(*z)
+            z = np.array(
+                z
+            )
+            
+            return np.dot(L, z)
+
+    def correlated_brownian_processes_with_CO(
+        self, 
+        n: int, 
+        corr=None,
+        cov_mat=None, 
+        how="full_random",
+        ma_window=10,
+        random_seed=None,
+        outlier_indices=None,
+        count=1,
+        S0:float = 1,
+        mu:float=0.1, 
+        sigma=0.01
+    ):
+        # write this by calling the function above.
+
+        return self.correlated_processes_with_correlated_outliers(
+            process_func=self.brownian_process, 
+            corr=corr, 
+            cov_mat=cov_mat, 
+            how=how,
+            ma_window=ma_window,
+            random_seed=random_seed,
+            outlier_indices=outlier_indices,
+            count=count,
+            S0=S0,
+            n=n,
+            mu=mu,
+            sigma=sigma
+        )
+
+    def correlated_geometric_brownian_processes_with_CO(
+        self, 
+        n: int, 
+        corr=None,
+        cov_mat=None, 
+        how="full_random",
+        ma_window=10,
+        random_seed=None,
+        outlier_indices=None,
+        count=1,
+        S0:float = 1,
+        mu:float=0.1, 
+        sigma=0.01
+    ):
+        if cov_mat is None:
+            z1, z2 = self.correlated_brownian_processes_with_CO(
+                corr=corr,
+                n=n,
+                mu=mu, 
+                sigma=sigma,
+                cov_mat=cov_mat,
+                ma_window=ma_window,
+                random_seed=random_seed,
+                outlier_indices=outlier_indices,
+                count=count,
+                how=how,
+                S0=1
+            )
+            return S0*np.exp(z1), S0*np.exp(z2)
+        else:
+            return S0*np.exp(
+                self.correlated_brownian_processes_with_CO(
+                                corr=corr,
+                                n=n,
+                                mu=mu, 
+                                sigma=sigma,
+                                cov_mat=cov_mat,
+                                ma_window=ma_window,
+                                random_seed=random_seed,
+                                outlier_indices=outlier_indices,
+                                count=count,
+                                how=how,
+                                S0=1
+                            )
+            )
+
 if __name__ == "__main__":
     sim = BaseSimulation()
 
@@ -222,17 +402,19 @@ if __name__ == "__main__":
         )
 
     helper = SimulationHelpers()
-    sigma = 0.02
+
+    sigma = 0.01 
     Sig = helper.gen_rand_cov_mat(
-        3, 
-        # sigma = sigma
+        8, 
     )
+    Sig /= 5
     print(Sig)
-    data = sim.correlated_brownian_process(n=10000, mu = 0, cov_mat=Sig, S0=100)
-    helper.plot(
-        *data, 
-        # func = "ret"
+    data = sim.correlated_geometric_brownian_processes_with_CO(
+        n=10000, mu = 0, sigma = 0.1, cov_mat=Sig, S0=100, 
+        ma_window = 30, 
+        how = "random_mag", 
+        outlier_indices = [6000]
     )
-    # np.linalg.cholesky(Sig)
-    print(helper.corr_from_cov(Sig))
+
+    helper.plot(*data, func = "ret")
     
