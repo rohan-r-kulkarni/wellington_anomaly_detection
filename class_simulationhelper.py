@@ -3,7 +3,6 @@ import pandas as pd
 from collections.abc import Iterable
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from class_basesimulation import BaseSimulation
 
 class SimulationHelpers:
 
@@ -42,6 +41,14 @@ class SimulationHelpers:
         corr[x == 0] = 0
         return corr
 
+    def brownian_process(self, n: int, mu=0.1, sigma=0.01, S0=1):
+        dt = 1 / n
+        t = np.linspace(0, 1, n)
+        W = np.random.standard_normal(size=n)
+        W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
+        X = (mu - 0.5 * sigma**2) * t + sigma * W
+        return X*S0
+
     def gen_seasonality(
         self,
         n,
@@ -51,9 +58,9 @@ class SimulationHelpers:
         how_diffusion=None,
         diffusion=0.1,
     ):
-        sim = BaseSimulation()
+
         x = np.arange(0, n, 1)
-        w = sim.brownian_process(n, mu=0, sigma = contamination)
+        w = self.brownian_process(n, mu=0, sigma = contamination)
         if how_diffusion == "linear":
             amp = x * amp * diffusion
         elif how_diffusion == "sqrt":
