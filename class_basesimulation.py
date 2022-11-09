@@ -3,9 +3,28 @@ import numpy as np
 import pandas as pd
 from collections.abc import Iterable
 import warnings
-from scipy.stats import norm
+from scipy.stats import norm, t
 from class_simulationhelper import SimulationHelpers
 
+
+class BaseProcess:
+    # TODO: write wrapper class for price processes
+
+    def __init__(self, data):
+        self.data = data
+        self.n = data.shape[0]
+
+    def stats(self):
+        d = self.data
+        return {
+            "mean": np.mean(self.data),
+            "std": np.std(self.data),
+            "min": np.min(self.data),
+            "q25": np.quantile(self.data, 0.25),
+            "median": np.median(self.data),
+            "q75": np.quantile(self.data, 0.75),
+            "max": np.max(self.data),
+        }
 
 class BaseSimulation:
     """Write me"""
@@ -99,17 +118,57 @@ class BaseSimulation:
     def add_seasonality(
         self,
         process,
-        start,
-        amp,
-        how="random",
+        start_idx=None,
+        amp=None,
+        freq=None,
+        diffusion=None,
+        how="full_random",
+        how_diffusion=None,
+        contamination:float=0,
         random_seed=None,
+        seasonality_limit:int=None
     ):
-        if how not in ["random", "manual"]:
-            warnings.warn("Invalid specification for arg 'how', default to random.")
-            how = "random"
+        if how not in ["full_random", "random_mag", "manual"]:
+            warnings.warn("Invalid specification for arg 'how', default to full_random.")
+            how = "full_random"
 
-        super_process = np.zeros_like(process)
-        # TODO: Write me after writing basic cross-correlation metric & multiple process generation   
+        if random_seed:
+            np.random.seed(random_seed)
+        if "random" in how:
+            if how == "full_random":
+                start_idx = np.random.choice(
+                    list(range(len(process))),
+                    size = 1
+                )
+                # if full_random, generate amp, freq, diffusion, contamination randomly
+                # using process mean and std as benchmark
+                std = np.std(process)
+                amp = np.random.random() * std * 2 * np.random.choice([-1,1]) if not amp else amp
+                freq = 1/len(process) * np.random.randint(10, 100) if not freq else freq
+                diffusion = np.random.random() * std * 2 * np.random.choice([-1,1]) if not diffusion else diffusion
+                how_diffusion = np.random.choice([None, "linear", "sqrt"]) if not how_diffusion else how_diffusion
+
+            elif how == "random_mag":
+                if not start_idx:
+                    raise RuntimeError("Specified random_mag overlay but no start_idx is provided.")
+                
+        else:
+            raise NotImplementedError(f"how = {how} not implemented.")
+
+        helper = SimulationHelpers()
+        seasonality = helper.gen_seasonality(
+            n = len(process),
+            amp=amp,
+            freq=freq,
+            contamination=contamination,
+            how_diffusion=how_diffusion,
+            diffusion=diffusion
+        )
+
+        if seasonality_limit is not None and isinstance(seasonality_limit, int):
+            seasonality[seasonality_limit:] = 0
+
+        return self.__overlay(process, seasonality)
 
     def get_random_z_above_thresh(self, thresh: float):
         sign = thresh > 0 - (thresh <= 0)
@@ -159,7 +218,7 @@ class BaseSimulation:
                 )
             elif how == "random_mag":
                 if not outlier_indices:
-                    raise RuntimeError("Specified semi-random overlay but no outlier_indices is provided.")
+                    raise RuntimeError("Specified random_mag overlay but no outlier_indices is provided.")
                 for idx in outlier_indices:
                     if idx not in range(ma_window - 1, len(process)):
                         raise ValueError(f"Specified index {idx} out of valid range.")
@@ -417,4 +476,8 @@ if __name__ == "__main__":
     )
 
     helper.plot(*data, func = "ret")
-    
+
+    # seasonality example use case:
+    # p = sim.geom_brownian_process(2000, mu=0.1, sigma=0.1)
+    # q = sim.add_seasonality(p, how = "full_random")
+    # helper.plot(p, q)

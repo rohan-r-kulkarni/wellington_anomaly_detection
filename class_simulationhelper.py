@@ -40,3 +40,21 @@ class SimulationHelpers:
         corr = x / outer_v
         corr[x == 0] = 0
         return corr
+
+    def gen_seasonality(
+        self,
+        n,
+        amp,
+        freq,
+        contamination,
+        how_diffusion=None,
+        diffusion=0.1,
+    ):
+        x = np.arange(0, n, 1)
+        w = sim.brownian_process(n, mu=0, sigma = contamination)
+        if how_diffusion == "linear":
+            amp = x * amp * diffusion
+        elif how_diffusion == "sqrt":
+            amp = np.sqrt(x) * amp * diffusion
+        
+        return amp * np.cos(x*freq) + w
