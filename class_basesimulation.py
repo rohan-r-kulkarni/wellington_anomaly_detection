@@ -7,25 +7,6 @@ from scipy.stats import norm, t
 from class_simulationhelper import SimulationHelpers
 
 
-class BaseProcess:
-    # TODO: write wrapper class for price processes
-
-    def __init__(self, data):
-        self.data = data
-        self.n = data.shape[0]
-
-    def stats(self):
-        d = self.data
-        return {
-            "mean": np.mean(self.data),
-            "std": np.std(self.data),
-            "min": np.min(self.data),
-            "q25": np.quantile(self.data, 0.25),
-            "median": np.median(self.data),
-            "q75": np.quantile(self.data, 0.75),
-            "max": np.max(self.data),
-        }
-
 class BaseSimulation:
     """Write me"""
     def __overlay(self, process, super_process):
