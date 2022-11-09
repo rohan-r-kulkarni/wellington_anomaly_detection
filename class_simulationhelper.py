@@ -3,6 +3,7 @@ import pandas as pd
 from collections.abc import Iterable
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from class_basesimulation import BaseSimulation
 
 class SimulationHelpers:
 
@@ -50,6 +51,7 @@ class SimulationHelpers:
         how_diffusion=None,
         diffusion=0.1,
     ):
+        sim = BaseSimulation()
         x = np.arange(0, n, 1)
         w = sim.brownian_process(n, mu=0, sigma = contamination)
         if how_diffusion == "linear":
