@@ -93,12 +93,14 @@ class MultiSimulation(BaseSimulation):
         outlier_indices=None,
         **kwargs
     ):
+        if random_seed:
+            np.random.seed(random_seed)
         # Introduce similar outliers to independent series 
         # Then correlate them 
         if how == "full_random":
             outlier_indices = np.random.choice(
                 list(range(ma_window - 1, len(process_func(**kwargs)))), size=count
-            )
+            ) if outlier_indices is None else outlier_indices
         elif how == "random_mag":
             if not outlier_indices:
                 raise RuntimeError("Specified semi-random overlay but no outlier_indices is provided.")
@@ -153,11 +155,6 @@ class MultiSimulation(BaseSimulation):
                     outlier_indices=outlier_indices,
                 ) for process in z
             ]
-            helper = SimulationHelpers()
-            helper.plot(*z)
-            z = np.array(
-                z
-            )
             
             return np.dot(L, z)
 
@@ -167,7 +164,7 @@ class MultiSimulation(BaseSimulation):
         corr=None,
         cov_mat=None, 
         how="full_random",
-        ma_window=10,
+        ma_window=10, 
         random_seed=None,
         outlier_indices=None,
         count=1,
@@ -176,7 +173,11 @@ class MultiSimulation(BaseSimulation):
         sigma=0.01
     ):
         # write this by calling the function above.
-
+        if random_seed:
+            np.random.seed(random_seed)
+        if how == "full_random":
+            mu = np.random.random() * S0 * np.random.choice([-1,1])
+            sigma = np.random.random() * mu / 2
         return self.correlated_processes_with_correlated_outliers(
             process_func=self.brownian_process, 
             corr=corr, 
@@ -206,6 +207,8 @@ class MultiSimulation(BaseSimulation):
         mu:float=0.1, 
         sigma=0.01
     ):
+        if random_seed:
+            np.random.seed(random_seed)
         if cov_mat is None:
             z1, z2 = self.correlated_brownian_processes_with_CO(
                 corr=corr,
@@ -238,20 +241,20 @@ class MultiSimulation(BaseSimulation):
                             )
             )
 
-if __name__ == "__main__":
-    multisim = MultiSimulation()
-    helper = SimulationHelpers()
-    Sig = helper.gen_rand_cov_mat(
-        8, 
-    )
-    Sig /= 5
-    print(Sig)
-    data = multisim.correlated_geometric_brownian_processes_with_CO(
-        n=10000, mu = 0, sigma = 0.1, cov_mat=Sig, S0=100, 
-        ma_window = 30, 
-        how = "random_mag", 
-        outlier_indices = [6000]
-    )
+# if __name__ == "__main__":
+    # multisim = MultiSimulation()
+    # helper = SimulationHelpers()
+    # Sig = helper.gen_rand_cov_mat(
+    #     8, 
+    # )
+    # Sig /= 5
+    # print(Sig)
+    # data = multisim.correlated_geometric_brownian_processes_with_CO(
+    #     n=10000, mu = 0, sigma = 0.1, cov_mat=Sig, S0=100, 
+    #     ma_window = 30, 
+    #     how = "random_mag", 
+    #     outlier_indices = [6000]
+    # )
 
-    helper.plot(*data, func="ret")
-    plt.show()
+    # helper.plot(*data, func="ret")
+    # plt.show()

@@ -19,12 +19,19 @@ class SimulationHelpers:
                 arg.pct_change().plot(grid=True, figsize=figsize, 
                     ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
                 )
+            elif func == "diff":
+                arg.diff().plot(grid=True, figsize=figsize, 
+                    ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
+                )
             else:
                 arg.plot(grid=True, figsize=figsize, 
                     ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
                 )
 
-    def gen_rand_cov_mat(self, n: int, sigma=None):
+    def gen_rand_cov_mat(self, n: int, random_seed=None, sigma=None):
+        if random_seed is not None:
+            np.random.seed(random_seed)
+            
         A = np.random.rand(n,n)
         Cov = A.dot(A.T)
         if sigma is not None:
@@ -48,6 +55,11 @@ class SimulationHelpers:
         W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
         X = (mu - 0.5 * sigma**2) * t + sigma * W
         return X*S0
+        
+    def standard_scaler(self, process):
+        mean = np.mean(process)
+        std = np.std(process)
+        return (process - mean) / std
 
     def gen_seasonality(
         self,
@@ -65,5 +77,7 @@ class SimulationHelpers:
             amp = x * amp * diffusion
         elif how_diffusion == "sqrt":
             amp = np.sqrt(x) * amp * diffusion
+        elif how_diffusion == "no":
+            pass
         
         return amp * np.cos(x*freq) + w

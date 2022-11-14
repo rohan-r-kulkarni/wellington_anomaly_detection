@@ -4,6 +4,7 @@ import pandas as pd
 from collections.abc import Iterable
 import warnings
 from scipy.stats import norm, t
+from scipy.ndimage import shift as scipyshift
 from class_simulationhelper import SimulationHelpers
 
 
@@ -46,17 +47,16 @@ class BaseSimulation:
             np.random.seed(random_seed)
         if "random" in how:
             if how == "full_random":
-                start_idx = np.random.choice(
+                seasonality_limit = np.random.choice(
                     list(range(len(process))),
-                    size = 1
-                )
+                ) 
                 # if full_random, generate amp, freq, diffusion, contamination randomly
                 # using process mean and std as benchmark
                 std = np.std(process)
-                amp = np.random.random() * std * 2 * np.random.choice([-1,1]) if not amp else amp
+                amp = np.random.random() / 2 * std * np.random.choice([-1,1]) if not amp else amp
                 freq = 1/len(process) * np.random.randint(10, 100) if not freq else freq
-                diffusion = np.random.random() * std * 2 * np.random.choice([-1,1]) if not diffusion else diffusion
-                how_diffusion = np.random.choice([None, "linear", "sqrt"]) if not how_diffusion else how_diffusion
+                diffusion = np.random.random() * std / len(process) * np.random.choice([-1,1]) if not diffusion else diffusion
+                how_diffusion = np.random.choice(["no", "linear", "sqrt"]) if not how_diffusion else how_diffusion
 
             elif how == "random_mag":
                 if not start_idx:
@@ -91,13 +91,9 @@ class BaseSimulation:
     def get_random_t_above_thresh(self, thresh: float, df: int):
         distr = t(df)
         sign = thresh > 0 - (thresh <= 0)
-        print("sign:", sign)
         abs_thresh = np.abs(thresh)
-        print("abs_thresh:", abs_thresh)
         p = distr.cdf(abs_thresh)
-        print("p:", p )
         mult = distr.cdf(np.abs(np.random.standard_t(df)))-0.5
-        print("norm_mult:", mult)
         z = distr.ppf(p + mult * (1 - p))
         return z * sign
 
@@ -127,7 +123,7 @@ class BaseSimulation:
                     list(range(ma_window - 1, len(process))), size=count
                 )
             elif how == "random_mag":
-                if not outlier_indices:
+                if outlier_indices is None:
                     raise RuntimeError("Specified random_mag overlay but no outlier_indices is provided.")
                 for idx in outlier_indices:
                     if idx not in range(ma_window - 1, len(process)):
@@ -197,6 +193,31 @@ class BaseSimulation:
                 super_process[event_index+regime_limit+1:] = 0
         
         return self.__overlay(process, super_process)
+
+    def add_shift(
+        self, 
+        process, 
+        shift=None, 
+        how="full_random",
+        random_seed=None,
+    ):
+
+        if how not in ["full_random", "manual"]:
+            warnings.warn("Invalid specification for arg 'how', default to full_random.")
+            how = "full_random"
+
+        if random_seed:
+            np.random.seed(random_seed)
+
+        if how == "full_random":
+            shift = np.random.choice(np.arange(-10, 11, 1)) if not shift else shift
+        elif how == "manual":
+            if not shift:
+                raise RuntimeError("Specified manual overlay but no shift is provided.")
+        else:
+            raise NotImplementedError(f"how = {how} not implemented.")
+
+        return scipyshift(process, shift, cval=np.nan)
 
 if __name__ == "__main__":
     sim = BaseSimulation()
