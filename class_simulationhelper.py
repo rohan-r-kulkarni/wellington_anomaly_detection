@@ -10,23 +10,31 @@ class SimulationHelpers:
         n = len(args)
         fig, ax = plt.subplots(n//row_lim + 1, min(row_lim, n), sharey=True)
         for i, arg in enumerate(args):
-            arg = pd.Series(arg)
-            if func == "log":
-                np.log(arg).plot(grid=True, figsize=figsize, 
-                    ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
-                )
-            elif func == "ret":
-                arg.pct_change().plot(grid=True, figsize=figsize, 
-                    ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
-                )
-            elif func == "diff":
-                arg.diff().plot(grid=True, figsize=figsize, 
-                    ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
-                )
+            if isinstance(arg, Iterable):
+                arg = [pd.Series(a) for a in arg]
             else:
-                arg.plot(grid=True, figsize=figsize, 
-                    ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
-                )
+                arg = [pd.Series(arg)]
+
+            if func == "log":
+                for a in arg:
+                    np.log(a).plot(grid=True, figsize=figsize, 
+                        ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
+                    )
+            elif func == "ret":
+                for a in arg:
+                    a.pct_change().plot(grid=True, figsize=figsize, 
+                        ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
+                    )
+            elif func == "diff":
+                for a in arg:
+                    a.diff().plot(grid=True, figsize=figsize, 
+                        ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
+                    )
+            else:
+                for a in arg:
+                    a.plot(grid=True, figsize=figsize, 
+                        ax=ax[i//row_lim,i%row_lim] if n > row_lim else ax[i%row_lim]
+                    )
 
     def gen_rand_cov_mat(self, n: int, random_seed=None, sigma=None):
         if random_seed is not None:
