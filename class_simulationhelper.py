@@ -213,7 +213,7 @@ class SimulationHelpers:
             only ['linear', 'sqrt', 'no'] are implemented.
             - 'linear': amplitude grows linearly over time.
             - 'sqrt': amplitude grows proportionally to the square root of time.
-            - 'no': no diffusion, constant. 
+            - 'no': no diffusion, constant.
             Default to be 'no'.
         :type how_diffusion: str, optional.
         :param diffusion: the diffusion multiplier. Higher diffusion implies faster diffusion.
