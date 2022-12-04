@@ -8,6 +8,8 @@ from typing import Iterable
 
 
 class SimulationHelpers:
+    """The helper class to store helper functions for data simulation.
+    """
     def __prepare_ax(self, i: int, n: int, row_lim: int, ax: plt.Axes):
         """
         Private function to aid graphing. Only called in self.plot().
