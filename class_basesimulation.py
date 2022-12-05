@@ -14,14 +14,14 @@ class BaseSimulation:
     construct these classes was to discover and validate model options.
     """
 
-    def __overlay(self, process: np.array, super_process: Iterable[float]):
+    def __overlay(self, process: np.ndarray, super_process: Iterable[float]):
         """Private function to overlay a process on another process.
         Will check if length match before overlaying.
         Future improvement: make sure arguments are broadcast-able.
-        For now, make sure one of the processes is a np.array.
+        For now, make sure one of the processes is a np.ndarray.
 
         :param process: First process.
-        :type process: np.array
+        :type process: np.ndarray
         :param super_process: Second process.
         :type super_process: Iterable[float]
         :rtype: Iterable[float]
@@ -69,7 +69,7 @@ class BaseSimulation:
 
     def add_seasonality(
         self,
-        process: np.array,
+        process: np.ndarray,
         start_idx: int = None,
         amp: float = None,
         freq: float = None,
@@ -83,7 +83,7 @@ class BaseSimulation:
         """Adds seasonality to the passed time series.
 
         :param process: Target time series
-        :type process: np.array
+        :type process: np.ndarray
         :param start_idx: the start index of tthe added seasonality.
         :type start_idx: int
         :param amp: amplitude parameter. Higher amp induces higher oscillation.
@@ -112,7 +112,7 @@ class BaseSimulation:
         :type random_seed: int
         :param seaonality_limit: the cutoff length for added seasonality
         :type seasonality_limit: int
-        :rtype: np.array
+        :rtype: np.ndarray
         """
         if how not in ["full_random", "random_mag", "manual"]:
             warnings.warn(
@@ -206,7 +206,7 @@ class BaseSimulation:
 
     def add_outlier(
         self,
-        process: np.array,
+        process: np.ndarray,
         thresh: float = norm.ppf(0.95),
         # thresh_z = 10,
         how: str = "full_random",
@@ -219,7 +219,7 @@ class BaseSimulation:
         """Adds outliers to a time series.
 
         :param process: Target time series
-        :type process: np.array
+        :type process: np.ndarray
         :param thresh: outlier threshold, used to generate random outlier multiplier.
         :type thresh: float
         :param how: the random configuration of this function.
@@ -236,11 +236,11 @@ class BaseSimulation:
         :type count: int
         :param super_process: the outlier array to be overlayed on the process,
             if how='manual' is configured. Default to `None`.
-        :type super_process: np.array
+        :type super_process: np.ndarray
         :param outlier_indices: the indices on which outliers are to be added.
             Must be passed if how='random_mag' is configured. Default to `None`.
         :type outlier_indices: Iterable[int]
-        :rtype: np.array
+        :rtype: np.ndarray
         """
         if how not in ["full_random", "random_mag", "manual"]:
             warnings.warn(
@@ -300,7 +300,7 @@ class BaseSimulation:
 
     def add_regime_change(
         self,
-        process: np.array,
+        process: np.ndarray,
         event_index: int,
         shift: float,
         regime_limit: int = None,
@@ -310,7 +310,7 @@ class BaseSimulation:
         """Adds regime change to a time series.
 
         :param process: Target time series
-        :type process: np.array
+        :type process: np.ndarray
         :param event_index: the desired index on which the regime change is to be added.
         :type event_index: int
         :param shift: the amount of shifting for the regime change.
