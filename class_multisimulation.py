@@ -19,8 +19,8 @@ class MultiSimulation(BaseSimulation):
     def correlated_process(
         self,
         process_func: Callable,
-        corr: Union[float, None],
-        cov_mat: np.array = None,
+        corr: Union[float, None] = None,
+        cov_mat: Union[np.ndarray, None] = None,
         **kwargs,
     ):
         """Kernel function to generate correlated processes. Although not private
@@ -33,7 +33,7 @@ class MultiSimulation(BaseSimulation):
         :type corr: Union[float, None]
         :param cov_mat: the covariance matrix, should want to generate processes
             with more than two dimensions.
-        :type cov_mat: np.ndarray
+        :type cov_mat: np.ndarray, optional
         :rtype: np.ndarray
         """
         if corr and isinstance(corr, float):  # if corr is a real number
@@ -55,8 +55,30 @@ class MultiSimulation(BaseSimulation):
             return np.dot(L, z)
 
     def correlated_brownian_process(
-        self, n: int, corr=None, mu=0.1, sigma=0.01, cov_mat=None, S0: float = 1
+        self,
+        n: int,
+        corr: Union[float, None] = None,
+        mu: float = 0.1,
+        sigma: float = 0.01,
+        cov_mat: Union[np.ndarray, None] = None,
+        S0: float = 1,
     ):
+        """Generates correlated bownian motions.
+
+        :param n: length of generated series.
+        :type n: int
+        :param corr: either a correlation coefficient or `None`
+        :type corr: Union[float, None]
+        :param mu: drift parameter of the brownian motions.
+        :type mu: float
+        :param sigma: volatility parameter of the brownian motions.
+        :type sigma: float
+        :param cov_mat: the covariance matrix, should want to generate processes
+            with more than two dimensions.
+        :type cov_mat: np.ndarray, optional
+        :param S0: initial position of the brownian motions.
+        :type S0: float, optional
+        """
         return self.correlated_process(
             process_func=self.brownian_process,
             corr=corr,
@@ -70,12 +92,28 @@ class MultiSimulation(BaseSimulation):
     def correlated_geometric_brownian_process(
         self,
         n: int,
-        corr=None,
+        corr: Union[float, None] = None,
         mu: float = 0.1,
         sigma: float = 0.01,
-        cov_mat=None,
+        cov_mat: np.ndarray = None,
         S0: float = 1,
     ):
+        """Generates correlated geometric bownian motions.
+
+        :param n: length of generated series.
+        :type n: int
+        :param corr: either a correlation coefficient or `None`
+        :type corr: Union[float, None]
+        :param mu: drift parameter of the brownian motions.
+        :type mu: float
+        :param sigma: volatility parameter of the brownian motions.
+        :type sigma: float
+        :param cov_mat: the covariance matrix, should want to generate processes
+            with more than two dimensions.
+        :type cov_mat: np.ndarray, optional
+        :param S0: initial position of the brownian motions.
+        :type S0: float, optional
+        """
         if cov_mat is None:
             z1, z2 = self.correlated_brownian_process(
                 corr=corr, n=n, mu=mu, sigma=sigma, cov_mat=cov_mat, S0=1
@@ -90,16 +128,45 @@ class MultiSimulation(BaseSimulation):
 
     def correlated_processes_with_correlated_outliers(
         self,
-        process_func,
-        corr,
-        cov_mat=None,
-        how="full_random",
-        ma_window=10,
-        random_seed=None,
-        count=1,
-        outlier_indices=None,
+        process_func: Callable,
+        corr: float,
+        cov_mat: np.ndarray = None,
+        how: str = "full_random",
+        ma_window: int = 10,
+        random_seed: int = None,
+        count: int = 1,
+        outlier_indices: Iterable[int] = None,
         **kwargs,
     ):
+        """Kernel function to generate correlated processes with correlated outliers.
+        Although not private protected, it's designed to be wrapped into other
+        generation functions by specifying the process_func.
+
+        :param process_func: the process function to generate one desired sires
+        :type process_func: Callable
+        :param corr: either a correlation coefficient or `None`
+        :type corr: Union[float, None]
+        :param cov_mat: the covariance matrix, should want to generate processes
+            with more than two dimensions.
+        :type cov_mat: np.ndarray, optional
+        :param how: the random configuration of this function.
+            Only ["full_random", "random_mag"] are implemented.
+            - 'random_mag': randomize only the outlier values, in which case
+                `outlier_indices` needs to be passed
+            - 'full_random': randomize outliers values and indices
+        :type how: str
+        :param ma_window: the size of the moving window to compute outlier values.
+        :type ma_window: int
+        :param random_seed: random seed, default to `None`.
+        :type random_seed: int
+        :param count: number of outliers to add. Must pass in the case of how='full_random'
+        :type count: int
+        :param outlier_indices: the indices on which outliers are to be added.
+            Must be passed if how='random_mag' is configured. Default to `None`.
+        :type outlier_indices: Iterable[int]
+        :param kwargs: other kwargs to be passed into the process_func Callable.
+        :rtype: np.ndarray
+        """
         if random_seed:
             np.random.seed(random_seed)
         # Introduce similar outliers to independent series
@@ -175,17 +242,49 @@ class MultiSimulation(BaseSimulation):
     def correlated_brownian_processes_with_CO(
         self,
         n: int,
-        corr=None,
-        cov_mat=None,
-        how="full_random",
-        ma_window=10,
-        random_seed=None,
-        outlier_indices=None,
-        count=1,
-        S0: float = 1,
+        corr: Union[float, None] = None,
         mu: float = 0.1,
-        sigma=0.01,
+        sigma: float = 0.01,
+        cov_mat: np.ndarray = None,
+        S0: float = 1,
+        how: str = "full_random",
+        ma_window: int = 10,
+        random_seed: int = None,
+        count: int = 1,
+        outlier_indices: Iterable[int] = None,
     ):
+        """Generate correlated brownian motion processes with correlated outliers.
+
+        :param n: length of generated series.
+        :type n: int
+        :param corr: either a correlation coefficient or `None`
+        :type corr: Union[float, None]
+        :param mu: drift parameter of the brownian motions.
+        :type mu: float
+        :param sigma: volatility parameter of the brownian motions.
+        :type sigma: float
+        :param cov_mat: the covariance matrix, should want to generate processes
+            with more than two dimensions.
+        :type cov_mat: np.ndarray, optional
+        :param S0: initial position of the brownian motions.
+        :type S0: float, optional
+        :param how: the random configuration of this function.
+            Only ["full_random", "random_mag"] are implemented.
+            - 'random_mag': randomize only the outlier values, in which case
+                `outlier_indices` needs to be passed
+            - 'full_random': randomize outliers values and indices
+        :type how: str
+        :param ma_window: the size of the moving window to compute outlier values.
+        :type ma_window: int
+        :param random_seed: random seed, default to `None`.
+        :type random_seed: int
+        :param count: number of outliers to add. Must pass in the case of how='full_random'
+        :type count: int
+        :param outlier_indices: the indices on which outliers are to be added.
+            Must be passed if how='random_mag' is configured. Default to `None`.
+        :type outlier_indices: Iterable[int]
+        :rtype: np.ndarray
+        """
         # write this by calling the function above.
         if random_seed:
             np.random.seed(random_seed)
@@ -210,17 +309,49 @@ class MultiSimulation(BaseSimulation):
     def correlated_geometric_brownian_processes_with_CO(
         self,
         n: int,
-        corr=None,
-        cov_mat=None,
-        how="full_random",
-        ma_window=10,
-        random_seed=None,
-        outlier_indices=None,
-        count=1,
-        S0: float = 1,
+        corr: Union[float, None] = None,
         mu: float = 0.1,
-        sigma=0.01,
+        sigma: float = 0.01,
+        cov_mat: np.ndarray = None,
+        S0: float = 1,
+        how: str = "full_random",
+        ma_window: int = 10,
+        random_seed: int = None,
+        count: int = 1,
+        outlier_indices: Iterable[int] = None,
     ):
+        """Generate correlated geometric brownian motion processes with correlated outliers.
+
+        :param n: length of generated series.
+        :type n: int
+        :param corr: either a correlation coefficient or `None`
+        :type corr: Union[float, None]
+        :param mu: drift parameter of the brownian motions.
+        :type mu: float
+        :param sigma: volatility parameter of the brownian motions.
+        :type sigma: float
+        :param cov_mat: the covariance matrix, should want to generate processes
+            with more than two dimensions.
+        :type cov_mat: np.ndarray, optional
+        :param S0: initial position of the brownian motions.
+        :type S0: float, optional
+        :param how: the random configuration of this function.
+            Only ["full_random", "random_mag"] are implemented.
+            - 'random_mag': randomize only the outlier values, in which case
+                `outlier_indices` needs to be passed
+            - 'full_random': randomize outliers values and indices
+        :type how: str
+        :param ma_window: the size of the moving window to compute outlier values.
+        :type ma_window: int
+        :param random_seed: random seed, default to `None`.
+        :type random_seed: int
+        :param count: number of outliers to add. Must pass in the case of how='full_random'
+        :type count: int
+        :param outlier_indices: the indices on which outliers are to be added.
+            Must be passed if how='random_mag' is configured. Default to `None`.
+        :type outlier_indices: Iterable[int]
+        :rtype: np.ndarray
+        """
         if random_seed:
             np.random.seed(random_seed)
         if cov_mat is None:

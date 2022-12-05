@@ -352,12 +352,25 @@ class BaseSimulation:
 
     def add_shift(
         self,
-        process,
-        shift=None,
-        how="full_random",
-        random_seed=None,
+        process: np.ndarray,
+        shift: int = None,
+        how: str = "full_random",
+        random_seed: int = None,
     ):
-        """Adds shift to target time series. Deprecated.
+        """Adds shift to target time series.
+        
+        :param process: Target time series
+        :type process: np.ndarray
+        :param shift: the number of period to shift the time series. Negative if
+            shifting backward.
+        :type shift: int
+        :param how: the random configuration of this function.
+            Only ["full_random", "manual"] are implemented.
+            - 'manual': do not randomize, in which case a `shift` int needs to be passed
+            - 'full_random': randomize shift
+        :type how: str
+        :param random_seed: random seed, default to `None`.
+        :type random_seed: int
         """
         if how not in ["full_random", "manual"]:
             warnings.warn(
