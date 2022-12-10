@@ -1,12 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+import warnings
+from class_basesimulation import BaseSimulation
 from collections.abc import Iterable
 from typing import Union, Callable
-import warnings
-from scipy.stats import norm, t
-from class_simulationhelper import SimulationHelpers
-from class_basesimulation import BaseSimulation
 
 
 class MultiSimulation(BaseSimulation):
@@ -43,7 +39,8 @@ class MultiSimulation(BaseSimulation):
         else:  # if corr is not a real number
             # check if a covariance matrix is passed
             if cov_mat is None:
-                raise ValueError("Either a corr value or a cov_mat must be passed.")
+                raise ValueError(
+                    "Either a corr value or a cov_mat must be passed.")
             try:
                 L = np.linalg.cholesky(cov_mat)
             except:
@@ -186,7 +183,8 @@ class MultiSimulation(BaseSimulation):
                 )
             for idx in outlier_indices:
                 if idx not in range(ma_window - 1, len(process_func(**kwargs))):
-                    raise ValueError(f"Specified index {idx} out of valid range.")
+                    raise ValueError(
+                        f"Specified index {idx} out of valid range.")
             warnings.warn(
                 (
                     "Specified random_mag with fixed indices"
@@ -218,7 +216,8 @@ class MultiSimulation(BaseSimulation):
         else:  # if corr is not a real number
             # check if a covariance matrix is passed
             if cov_mat is None:
-                raise ValueError("Either a corr value or a cov_mat must be passed.")
+                raise ValueError(
+                    "Either a corr value or a cov_mat must be passed.")
             try:
                 L = np.linalg.cholesky(cov_mat)
             except:

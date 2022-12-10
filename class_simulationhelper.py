@@ -1,15 +1,15 @@
 import numpy as np
 import pandas as pd
-from collections.abc import Iterable
 import matplotlib.pyplot as plt
+from collections.abc import Iterable
 from matplotlib.pyplot import cm
-from scipy.stats import norm
 from typing import Iterable
 
 
 class SimulationHelpers:
     """The helper class to store helper functions for data simulation.
     """
+
     def __prepare_ax(self, i: int, n: int, row_lim: int, ax: plt.Axes):
         """
         Private function to aid graphing. Only called in self.plot().
@@ -130,7 +130,8 @@ class SimulationHelpers:
                         if n > row_lim
                         else ax[i % row_lim]
                     )
-                    pos.axvline(x=point, color=next(cmap), linestyle="--", alpha=0.8)
+                    pos.axvline(x=point, color=next(cmap),
+                                linestyle="--", alpha=0.8)
 
     def gen_rand_cov_mat(self, n: int, random_seed: int = None):
         """Generates a positive definite random covariance matrix.
@@ -176,7 +177,7 @@ class SimulationHelpers:
         dt = 1 / n
         t = np.linspace(0, 1, n)
         W = np.random.standard_normal(size=n)
-        W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
+        W = np.cumsum(W) * np.sqrt(dt)  # standard brownian motion ###
         X = (mu - 0.5 * sigma**2) * t + sigma * W
         return X * S0
 

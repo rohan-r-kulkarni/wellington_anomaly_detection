@@ -1,7 +1,7 @@
-from class_multisimulation import MultiSimulation
-from class_simulationhelper import SimulationHelpers
 import numpy as np
 import pandas as pd
+from class_multisimulation import MultiSimulation
+from class_simulationhelper import SimulationHelpers
 
 sim = MultiSimulation()
 helper = SimulationHelpers()

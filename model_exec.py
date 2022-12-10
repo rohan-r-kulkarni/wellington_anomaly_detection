@@ -1,15 +1,15 @@
-import tensorflow as tf
-import keras
 import numpy as np
-from scipy.stats import norm
+import keras
+import tensorflow as tf
 from data_generation import gen_data
-from pyod.utils import pairwise_distances_no_broadcast
-from dense_autoencoder import DENSE_Model
 from lstm_autoencoder import reconstruction
+from pyod.utils import pairwise_distances_no_broadcast
+from scipy.stats import norm
 
 
 class OutlierMetric:
     """Class to organize outlier classification metric functions"""
+
     def quantile_outlier(self, l, thresh=0.05):
         """Decides that the top (100*thresh)% are outliers
 
@@ -89,7 +89,8 @@ def lstm_run(
     seq_size = model.seq_size
     model.compile(optimizer="adam", loss="mse")
     if early_stopping:
-        callback = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
+        callback = tf.keras.callbacks.EarlyStopping(
+            monitor="loss", patience=10)
         model.fit(
             train_data,
             train_data,
@@ -108,7 +109,8 @@ def lstm_run(
     test_reconstructed = reconstruction(test_data, n_feature)
     pred_reconstructed = reconstruction(pred, n_feature)
 
-    distances = pairwise_distances_no_broadcast(test_reconstructed, pred_reconstructed)
+    distances = pairwise_distances_no_broadcast(
+        test_reconstructed, pred_reconstructed)
 
     indx = {}
     n = int(len(test_reconstructed) * thresh)
@@ -164,7 +166,7 @@ def temporalize(X, seq_size):
     output_X = []
 
     for i in range(len(X) - seq_size + 1):
-        output_X.append(X[i : i + seq_size, :])
+        output_X.append(X[i: i + seq_size, :])
 
     return np.array(output_X)
 

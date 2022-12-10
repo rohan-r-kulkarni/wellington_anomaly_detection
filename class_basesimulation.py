@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from collections.abc import Iterable
 import warnings
+from class_simulationhelper import SimulationHelpers
+from collections.abc import Iterable
 from scipy.stats import norm, t
 from scipy.ndimage import shift as scipyshift
-from class_simulationhelper import SimulationHelpers
 
 
 class BaseSimulation:
@@ -47,7 +47,7 @@ class BaseSimulation:
         dt = 1 / n
         t = np.linspace(0, 1, n)
         W = np.random.standard_normal(size=n)
-        W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
+        W = np.cumsum(W) * np.sqrt(dt)  # standard brownian motion ###
         X = (mu - 0.5 * sigma**2) * t + sigma * W
         return X * S0
 
@@ -136,10 +136,12 @@ class BaseSimulation:
                     else amp
                 )
                 freq = (
-                    1 / len(process) * np.random.randint(10, 100) if not freq else freq
+                    1 / len(process) * np.random.randint(10,
+                                                         100) if not freq else freq
                 )
                 diffusion = (
-                    np.random.random() * std / len(process) * np.random.choice([-1, 1])
+                    np.random.random() * std / len(process) *
+                    np.random.choice([-1, 1])
                     if not diffusion
                     else diffusion
                 )
@@ -264,7 +266,8 @@ class BaseSimulation:
                     )
                 for idx in outlier_indices:
                     if idx not in range(ma_window - 1, len(process)):
-                        raise ValueError(f"Specified index {idx} out of valid range.")
+                        raise ValueError(
+                            f"Specified index {idx} out of valid range.")
                 warnings.warn(
                     (
                         "Specified random_mag with fixed indices"
@@ -286,7 +289,8 @@ class BaseSimulation:
                 # thresh_z for i in range(count)
             ]
 
-            super_process = outlier_z * pd.Series(process).rolling(ma_window).std()
+            super_process = outlier_z * \
+                pd.Series(process).rolling(ma_window).std()
 
             return self.__overlay(process, super_process)
 
@@ -330,7 +334,8 @@ class BaseSimulation:
                 shift = np.array(shift[: len(process) - event_index])
             elif len(shift) < len(process) - event_index:
                 shift = np.array(
-                    list(shift) + [0] * (len(process) - event_index - len(shift))
+                    list(shift) + [0] *
+                    (len(process) - event_index - len(shift))
                 )
         else:
             raise ValueError(
@@ -346,7 +351,7 @@ class BaseSimulation:
 
         if regime_limit:
             if event_index + regime_limit < len(super_process):
-                super_process[event_index + regime_limit + 1 :] = 0
+                super_process[event_index + regime_limit + 1:] = 0
 
         return self.__overlay(process, super_process)
 
@@ -358,7 +363,7 @@ class BaseSimulation:
         random_seed: int = None,
     ):
         """Adds shift to target time series.
-        
+
         :param process: Target time series
         :type process: np.ndarray
         :param shift: the number of period to shift the time series. Negative if
@@ -382,10 +387,12 @@ class BaseSimulation:
             np.random.seed(random_seed)
 
         if how == "full_random":
-            shift = np.random.choice(np.arange(-10, 11, 1)) if not shift else shift
+            shift = np.random.choice(
+                np.arange(-10, 11, 1)) if not shift else shift
         elif how == "manual":
             if not shift:
-                raise RuntimeError("Specified manual overlay but no shift is provided.")
+                raise RuntimeError(
+                    "Specified manual overlay but no shift is provided.")
         else:
             raise NotImplementedError(f"how = {how} not implemented.")
 

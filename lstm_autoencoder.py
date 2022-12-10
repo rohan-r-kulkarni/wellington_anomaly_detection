@@ -1,13 +1,12 @@
-from collections.abc import Iterable
-import random
-from class_basesimulation import BaseSimulation
-from class_simulationhelper import SimulationHelpers
-from pyod.utils.stat_models import pairwise_distances_no_broadcast
-import matplotlib.pyplot as plt
+import keras
 import numpy as np
 import pandas as pd
+import random
 import tensorflow as tf
-import keras
+from class_basesimulation import BaseSimulation
+from class_simulationhelper import SimulationHelpers
+from collections.abc import Iterable
+from pyod.utils.stat_models import pairwise_distances_no_broadcast
 from typing import List
 
 
