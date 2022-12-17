@@ -5,7 +5,7 @@ from data_generation import gen_data
 from lstm_autoencoder import reconstruction
 from pyod.utils import pairwise_distances_no_broadcast
 from scipy.stats import norm
-
+from sklearn.metrics import pairwise_distances
 
 class OutlierMetric:
     """Class to organize outlier classification metric functions"""
@@ -53,6 +53,19 @@ class OutlierMetric:
             for idx in range(len(l))
             if l[idx] >= q75 + 1.5 * iqr or l[idx] <= q25 - 1.5 * iqr
         ]
+
+
+def get_outliers(original, prediction):
+    num_samples, num_features = original.shape
+    pairwise_distances = np.square(original-prediction)
+
+    m = OutlierMetric()
+
+    indices = []
+    for i in range(num_features):
+        indices.append(m.bb_outlier(l=pairwise_distances[:, i]))
+
+    return np.array(indices)
 
 
 def lstm_run(
@@ -109,20 +122,21 @@ def lstm_run(
     test_reconstructed = reconstruction(test_data, n_feature)
     pred_reconstructed = reconstruction(pred, n_feature)
 
-    distances = pairwise_distances_no_broadcast(
-        test_reconstructed, pred_reconstructed)
+    ind = get_outliers(test_reconstructed, pred_reconstructed)
 
-    indx = {}
-    n = int(len(test_reconstructed) * thresh)
-    indx["top"] = np.argpartition(distances, -n)[-n:]
-    indx["quantile"] = metrics.quantile_outlier(distances, thresh=thresh)
-    indx["bb"] = metrics.bb_outlier(distances, thresh=thresh)
-    indx["iqr"] = metrics.iqr_outlier(distances)
-
-    if metric == "all":
-        ind = indx
-    else:
-        ind = indx[metric]
+    # print(f"Distances: {pairwise_distances(test_reconstructed, pred_reconstructed)}")
+    #
+    # indx = {}
+    # n = int(len(test_reconstructed) * thresh)
+    # indx["top"] = np.argpartition(distances, -n)[-n:]
+    # indx["quantile"] = metrics.quantile_outlier(distances, thresh=thresh)
+    # indx["bb"] = metrics.bb_outlier(distances, thresh=thresh)
+    # indx["iqr"] = metrics.iqr_outlier(distances)
+    #
+    # if metric == "all":
+    #     ind = indx
+    # else:
+    #     ind = indx[metric]
 
     return pred_reconstructed, ind
 
@@ -202,13 +216,41 @@ if __name__ == "__main__":
     print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
     print("Num GPUs Available: ", tf.config.list_physical_devices("GPU"))
 
-    total_time = 30000
-    seq_size = 50
-    n_feature = 3
+    # prepare dataset
+    featured_credit = pd.read_csv(r'data\featured_credit.csv', index_col="trans_date")
+    credit = featured_credit.loc[:, [col for col in featured_credit.columns if "_" not in col]]
+    d1 = featured_credit.loc[:, [col for col in featured_credit.columns if col.endswith("_d1")]]
 
-    data = gen_data(10).to_numpy()
+    # Select n companies with no zero observations and highest variances.
+    credit_nozero = credit.loc[:, credit.apply(lambda x: (x == 0).sum() == 0)]
+    # np.random.seed(42)
+    # n_companies = 6
+    np.random.seed(25)
 
-    partition_size = int(len(data) * 3 / 4)
+    n_companies = 8
+    companies = np.random.choice(credit_nozero.apply(lambda x: (x - x.mean()) / x.std()).columns, n_companies,
+                                 replace=False).tolist()
+    np.random.seed(None)
+
+    def standard_scale(x: pd.Series):
+        return (x - x.mean()) / x.std()
+    def has_substr_in_list(s: str, l: list):
+        return not all(x not in s for x in l)
+
+
+    features = featured_credit.loc[:,
+               [col for col in featured_credit if ("_" in col) and (has_substr_in_list(col, companies))]]
+    features = features.apply(standard_scale)
+    features.shape
+
+    # total_time = 30000
+    # seq_size = 25
+    seq_size = 5
+    n_feature = features.shape[1]
+
+    data = features.values
+    test_size = 0.4
+    partition_size = int(len(data) * (1 - test_size))
 
     data_train = data[0:partition_size]
     data_test = data[partition_size:]
@@ -216,12 +258,26 @@ if __name__ == "__main__":
     data_train_seq = temporalize(data_train, seq_size)
     data_test_seq = temporalize(data_test, seq_size)
 
-    lstm_pred, lstm_outliers = lstm_run(data_train_seq, data_test_seq)
-    # dense_pred, dense_outliers = dense_run(data_train, data_test)
+    lstm_pred, lstm_outliers = lstm_run(
+        LSTM_Model_Base(
+            seq_size,
+            n_feature,
+            [128,
+             64,
+             64,
+             128
+             ],
+            mid_activation=tf.nn.tanh
+        ),
+        data_train_seq,
+        data_test_seq,
+        batch_size=512,
+        epoch=300,
+        metric="all",
+        early_stopping=False
+    )
+    # dense_pred, dense_outliers = dense_run(data_train, data_test, n_feature, batch_size = 100)
 
     print(f"Data test shape {data_test.shape}")
     print(f"lstm_pred shape {lstm_pred.shape}")
     # print(f"dense_pred shape {dense_pred.shape}")
-
-    # plot the curves
-    # TODO
