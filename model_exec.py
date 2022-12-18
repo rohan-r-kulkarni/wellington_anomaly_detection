@@ -58,7 +58,11 @@ class OutlierMetric:
 
 
 def get_outliers(
-    original: np.ndarray, prediction: np.ndarray, metric: str = "bb", **kwargs
+    original: np.ndarray,
+    prediction: np.ndarray,
+    metric: str = "bb",
+    cross_feature_check: bool = False,
+    **kwargs
 ) -> np.ndarray:
     """Determine idiosyncratic outliers for each reconstructed feature.
 
@@ -68,7 +72,10 @@ def get_outliers(
     :type prediction: np.ndarray
     :param metric: the outlier metric from OutlierMetric to use for features.
         only "bb", "quantile" and "iqr" are valid.
-    :type metric
+    :type metric: str
+    :param cross_feature_check: whether to check feature-specific outlier against
+        the cross-feature outliers or not
+    :type cross_feature_check: bool
     :rtype: np.ndarray
     """
     num_samples, num_features = original.shape
@@ -76,32 +83,55 @@ def get_outliers(
 
     m = OutlierMetric()
     metric_dict = {
-        "bb": m.bb_outlier, 
+        "bb": m.bb_outlier,
         "quantile": m.quantile_outlier,
-        "iqr": m.iqr_outlier
+        "iqr": m.iqr_outlier,
     }
     if metric not in metric_dict:
         warnings.warn("Invalid metric passed. Default to bb.")
         metric = "bb"
-    
     outlier_func = metric_dict[metric]
 
-    indices = []
-    for i in range(num_features):
-        indices.append(outlier_func(pairwise_distances[:, i], **kwargs))
+    # if cross_feature_check flagged True, we check potential outliers of each feature
+    # against all other features.
+    # Important note: this must be done on standard-scaled, stationary time-series
+
+    if cross_feature_check:
+        mu = pairwise_distances.mean()
+        sig = pairwise_distances.std()
+        std_mult = norm.ppf(1 - kwargs['thresh'] / 2) if 'thresh' in kwargs else norm.ppf(1 - 0.05 / 2)
+        ub, lb = mu + sig * std_mult, mu - sig * std_mult
+        check_idx =  np.array([
+            [idx for idx in range(len(l)) if l[idx] >= ub or l[idx] <= lb]
+            for l in pairwise_distances.T
+        ])
+
+        indices = []
+        for i in range(num_features):
+            indices.append(
+                np.array(
+                    [idx for idx in outlier_func(pairwise_distances[:, i], **kwargs) if idx in check_idx[i]]
+                )
+            )
+    else:
+        indices = []
+        for i in range(num_features):
+            indices.append(outlier_func(pairwise_distances[:, i], **kwargs))
 
     return np.array(indices)
 
 
 def lstm_run(
     model,
-    train_data,
-    test_data,
-    batch_size,
-    metric="top",
-    thresh=0.05,
-    epoch=80,
-    early_stopping=False,
+    train_data:np.ndarray,
+    test_data:np.ndarray,
+    batch_size:int,
+    metric:str="top",
+    thresh:float=0.05,
+    epoch:int=80,
+    early_stopping:bool=False,
+    cross_feature_check: bool = False,
+
 ):
     """Execute lstm model.
 
@@ -146,7 +176,13 @@ def lstm_run(
     test_reconstructed = reconstruction(test_data, n_feature)
     pred_reconstructed = reconstruction(pred, n_feature)
 
-    ind = get_outliers(test_reconstructed, pred_reconstructed)
+    ind = get_outliers(
+        original=test_reconstructed,
+        prediction=pred_reconstructed,
+        metric=metric,
+        thresh=thresh,
+        cross_feature_check=cross_feature_check
+    )
 
     # print(f"Distances: {pairwise_distances(test_reconstructed, pred_reconstructed)}")
     #
@@ -236,79 +272,12 @@ def reconstruction(seq_data, n_features):
 
 
 if __name__ == "__main__":
-    pass
-    # # system setup
-    # print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
-    # print("Num GPUs Available: ", tf.config.list_physical_devices("GPU"))
-
-    # # prepare dataset
-    # featured_credit = pd.read_csv(r"data\featured_credit.csv", index_col="trans_date")
-    # credit = featured_credit.loc[
-    #     :, [col for col in featured_credit.columns if "_" not in col]
-    # ]
-    # d1 = featured_credit.loc[
-    #     :, [col for col in featured_credit.columns if col.endswith("_d1")]
-    # ]
-
-    # # Select n companies with no zero observations and highest variances.
-    # credit_nozero = credit.loc[:, credit.apply(lambda x: (x == 0).sum() == 0)]
-    # # np.random.seed(42)
-    # # n_companies = 6
-    # np.random.seed(25)
-
-    # n_companies = 8
-    # companies = np.random.choice(
-    #     credit_nozero.apply(lambda x: (x - x.mean()) / x.std()).columns,
-    #     n_companies,
-    #     replace=False,
-    # ).tolist()
-    # np.random.seed(None)
-
-    # def standard_scale(x: pd.Series):
-    #     return (x - x.mean()) / x.std()
-
-    # def has_substr_in_list(s: str, l: list):
-    #     return not all(x not in s for x in l)
-
-    # features = featured_credit.loc[
-    #     :,
-    #     [
-    #         col
-    #         for col in featured_credit
-    #         if ("_" in col) and (has_substr_in_list(col, companies))
-    #     ],
-    # ]
-    # features = features.apply(standard_scale)
-    # features.shape
-
-    # # total_time = 30000
-    # # seq_size = 25
-    # seq_size = 5
-    # n_feature = features.shape[1]
-
-    # data = features.values
-    # test_size = 0.4
-    # partition_size = int(len(data) * (1 - test_size))
-
-    # data_train = data[0:partition_size]
-    # data_test = data[partition_size:]
-
-    # data_train_seq = temporalize(data_train, seq_size)
-    # data_test_seq = temporalize(data_test, seq_size)
-
-    # lstm_pred, lstm_outliers = lstm_run(
-    #     LSTM_Model_Base(
-    #         seq_size, n_feature, [128, 64, 64, 128], mid_activation=tf.nn.tanh
-    #     ),
-    #     data_train_seq,
-    #     data_test_seq,
-    #     batch_size=512,
-    #     epoch=300,
-    #     metric="all",
-    #     early_stopping=False,
-    # )
-    # # dense_pred, dense_outliers = dense_run(data_train, data_test, n_feature, batch_size = 100)
-
-    # print(f"Data test shape {data_test.shape}")
-    # print(f"lstm_pred shape {lstm_pred.shape}")
-    # # print(f"dense_pred shape {dense_pred.shape}")
+    x = np.random.random(size = [10, 10])
+    x[1,1] += 5
+    print(x)
+    print()
+    print(x.std())
+    print(x.mean())
+    m = OutlierMetric()
+    res = [m.bb_outlier(y) for y in x]
+    print(res)
