@@ -1,12 +1,14 @@
 # deep-learning-wellington-od
 
-**Description:**
+## Description
 \
-  Project: Wellington Management - Multivariate Time-Series Anomaly Detection\
-  Contributors: Lin, Ruoyu; Liu, Tianhao (Raymond); Xue, Guangrui. \
+  **Project**: Wellington Management - Multivariate Time-Series Anomaly Detection\
+  **Contributors**: Lin, Ruoyu; Liu, Tianhao (Raymond); Xue, Guangrui. \
+  \
   This is a project repository for 2022 Columbia Engineering IEOR4742 Deep Learning for FE and OR, Wellington Management Group 1. By the time this is writing down in Dec. 2022, the group has implemented a preliminary LSTM-AutoEncoder anomaly detector. 
 
-**Files:**
+
+## Files 
 - Simulation Toolkit:
   - `class_basesimulation.py`: contains base simulation class `BaseSimulation`, parent class of `Multisimulation` in `class_multisimulation`.
   - `class_multisimulation.py`: contains inherited simulation class `MultiSimulation`, child class of `BaseSimulation` in `class_basesimulation` in `class_basesimulation`. For future users: both these two classes can be modified to produce more sophisticated simulation tools.
