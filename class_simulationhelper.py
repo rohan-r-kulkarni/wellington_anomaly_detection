@@ -132,6 +132,7 @@ class SimulationHelpers:
                     )
                     pos.axvline(x=point, color=next(cmap),
                                 linestyle="--", alpha=0.8)
+        return ax
 
     def gen_rand_cov_mat(self, n: int, random_seed: int = None):
         """Generates a positive definite random covariance matrix.
