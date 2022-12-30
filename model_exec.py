@@ -7,12 +7,12 @@ from lstm_autoencoder import reconstruction
 from pyod.utils import pairwise_distances_no_broadcast
 from scipy.stats import norm
 from sklearn.metrics import pairwise_distances
-
+from typing import Iterable
 
 class OutlierMetric:
     """Class to organize outlier classification metric functions"""
 
-    def quantile_outlier(self, l, thresh=0.05):
+    def quantile_outlier(self, l:Iterable, thresh=0.05):
         """Decides that the top (100*thresh)% are outliers
 
         :param l: data
@@ -24,7 +24,7 @@ class OutlierMetric:
         cutoff = np.quantile([np.abs(x) for x in l], 1 - thresh)
         return [idx for idx in range(len(l)) if np.abs(l[idx]) >= cutoff]
 
-    def bb_outlier(self, l, thresh=0.05):
+    def bb_outlier(self, l:Iterable, thresh=0.05):
         """Decides that the observation k standard deviation outliers of mean
         are outliers, like a bollinger band.
 
@@ -40,7 +40,7 @@ class OutlierMetric:
         lb = np.mean(l) - np.std(l) * std_mult
         return [idx for idx in range(len(l)) if l[idx] >= ub or l[idx] <= lb]
 
-    def iqr_outlier(self, l):
+    def iqr_outlier(self, l:Iterable):
         """Decides that the observations 1.5 IQR away from 75 quantile and 25
         quantile are outliers.
 
