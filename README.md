@@ -18,9 +18,10 @@
 - Data:
   - `data4columbia_credit.csv`: credit card transaction data of ~50 companies, provided by Wellington Management 
   - `data4columbia_sales.csv`: quarterly sales data of ~50 companies, provided by Wellington Management
+  - `wellington_data_processing.py`: the data processing pipeline for the credit card data set.
 - Model:
   - `lstm_autoencoder.py`: contains two classes:
-    - `DataGeneration`, a legacy class used to call simulation toolkit. Deprecated in later stage of studies.
+    - `DataGeneration`, a legacy class used to call simulation toolkit. Deprecated in later stage of studies, but still salvagable for future simulations.
     - `LSTM_Model_Base`, the main class to define a LSTM-AutoEncoder model. The class is designed such that an LSTM-AE architecture can be passed to initialize the model, and the class will automatically check whether the passed specification is a valid (symmetric) architecture.
   - `model_exec.py`: the main model file that contains
     - utility class `OutlierMetric` that enables the classification of outliers using different methods.
