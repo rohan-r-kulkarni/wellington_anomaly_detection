@@ -146,6 +146,7 @@ class LSTM_Model_Final(LSTM_Model_Base):
     :param n_feature: number of features
     :type n_feature: int
     """
+
     def __init__(
         self,
         n_feature: int,
