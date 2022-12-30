@@ -384,22 +384,3 @@ class MultiSimulation(BaseSimulation):
                     S0=1,
                 )
             )
-
-
-# if __name__ == "__main__":
-# multisim = MultiSimulation()
-# helper = SimulationHelpers()
-# Sig = helper.gen_rand_cov_mat(
-#     8,
-# )
-# Sig /= 5
-# print(Sig)
-# data = multisim.correlated_geometric_brownian_processes_with_CO(
-#     n=10000, mu = 0, sigma = 0.1, cov_mat=Sig, S0=100,
-#     ma_window = 30,
-#     how = "random_mag",
-#     outlier_indices = [6000]
-# )
-
-# helper.plot(*data, func="ret")
-# plt.show()
