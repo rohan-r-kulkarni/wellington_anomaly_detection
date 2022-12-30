@@ -182,12 +182,12 @@ class SimulationHelpers:
         X = (mu - 0.5 * sigma**2) * t + sigma * W
         return X * S0
 
-    def standard_scaler(self, process: np.array):
+    def standard_scaler(self, process: np.ndarray):
         """Scales a series by its mean and std.
 
         :param process: the time series to be scaled
         :type process: np.array
-        :rtype: np.array
+        :rtype: np.ndarray
         """
         mean = np.mean(process)
         std = np.std(process)
