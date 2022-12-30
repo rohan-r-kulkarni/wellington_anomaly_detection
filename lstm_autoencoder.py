@@ -174,7 +174,7 @@ def temporalize(X, seq_size: int):
     return output_X
 
 
-def reconstruction(seq_data, n_features):
+def reconstruction(seq_data: np.ndarray, n_features: int):
     """Reconstruct the time series from sliced sequences.
 
     :param seq_data: temporalized data
