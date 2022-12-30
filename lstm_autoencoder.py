@@ -141,11 +141,11 @@ class LSTM_Model_Final(LSTM_Model_Base):
     """The final decided model for Wellington 2022 Fall study.
     LSTM-AE model architecture: 128-64-64-128. Not called elsewhere,
     but implemented here just as a record.
+    For future studies, use LSTM_Model_Base for customization.
 
     :param n_feature: number of features
     :type n_feature: int
     """
-
     def __init__(
         self,
         n_feature: int,
