@@ -137,6 +137,28 @@ class LSTM_Model_Base(tf.keras.Model):
         return x
 
 
+class LSTM_Model_Final(LSTM_Model_Base):
+    """The final decided model for Wellington 2022 Fall study.
+    LSTM-AE model architecture: 128-64-64-128. Not called elsewhere,
+    but implemented here just as a record.
+
+    :param n_feature: number of features
+    :type n_feature: int
+    """
+
+    def __init__(
+        self,
+        n_feature: int,
+    ):
+        super().__init__(
+            seq_size=5,
+            n_feature=n_feature,
+            layers=[128, 64, 64, 128],
+            activation=tf.nn.tanh,
+            mid_activation=tf.nn.tanh,
+        )
+
+
 def temporalize(X, seq_size: int):
     """Prepare input data for LSTM layers by slicing the data into sequences.
 
