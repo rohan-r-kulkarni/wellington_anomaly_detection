@@ -99,7 +99,7 @@ def get_outliers(
     if cross_feature_check:
         mu = pairwise_distances.mean()
         sig = pairwise_distances.std()
-        std_mult = norm.ppf(1 - kwargs['thresh'] / 2) if 'thresh' in kwargs else norm.ppf(1 - 0.05 / 2)
+        std_mult = norm.ppf(1 - kwargs['thresh'] / 2) if 'thresh' in kwargs else norm.ppf(1 - 0.1 / 2)
         ub, lb = mu + sig * std_mult, mu - sig * std_mult
         check_idx =  np.array([
             [idx for idx in range(len(l)) if l[idx] >= ub or l[idx] <= lb]

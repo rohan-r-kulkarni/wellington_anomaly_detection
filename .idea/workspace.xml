@@ -5,9 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c67202a9-2614-423c-9089-7516dc7ace17" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lstm_model/keras_metadata.pb" beforeDir="false" afterPath="$PROJECT_DIR$/lstm_model/keras_metadata.pb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lstm_model/saved_model.pb" beforeDir="false" afterPath="$PROJECT_DIR$/lstm_model/saved_model.pb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lstm_model/variables/variables.data-00000-of-00001" beforeDir="false" afterPath="$PROJECT_DIR$/lstm_model/variables/variables.data-00000-of-00001" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lstm_model/variables/variables.index" beforeDir="false" afterPath="$PROJECT_DIR$/lstm_model/variables/variables.index" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_exec.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_exec.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wellington_data_fit.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/wellington_data_fit.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/new_fit.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/new_fit.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
