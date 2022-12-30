@@ -14,6 +14,7 @@
   - `class_multisimulation.py`: contains inherited simulation class `MultiSimulation`, child class of `BaseSimulation` in `class_basesimulation` in `class_basesimulation`. For future users: both these two classes can be modified to produce more sophisticated simulation tools.
   - `class_simulationhelper.py`: contains helper functions used to implement previous classes. It also contains other helper method for plotting.
   - `data_generation.py`: contains a single function that showcases how to automatically generate simulated datasets using only random seeds. 
+  - `gen_datasets.py`: a caller file for functionalities in `data_generation.py`.
 - Data:
   - `data4columbia_credit.csv`: credit card transaction data of ~50 companies, provided by Wellington Management 
   - `data4columbia_sales.csv`: quarterly sales data of ~50 companies, provided by Wellington Management
