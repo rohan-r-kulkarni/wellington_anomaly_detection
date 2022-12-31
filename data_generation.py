@@ -1,3 +1,10 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains a single function that showcases how to automatically generate simulated datasets using only random seeds.
+Part of simulation toolset.
+"""
+
 import numpy as np
 import pandas as pd
 from class_multisimulation import MultiSimulation

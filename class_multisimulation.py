@@ -1,3 +1,10 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains inherited simulation class `MultiSimulation`, child class of `BaseSimulation`
+in `class_basesimulation` in `class_basesimulation`. Part of simulation toolset.
+"""
+
 import numpy as np
 import warnings
 from class_basesimulation import BaseSimulation

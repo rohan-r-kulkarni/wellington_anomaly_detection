@@ -1,3 +1,15 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains two classes:
+    - `DataGeneration`, a legacy class used to call simulation toolkit.
+        Deprecated in later stage of studies, but still salvagable for future simulations.
+    - `LSTM_Model_Base`, the main class to define a LSTM-AutoEncoder model.
+        The class is designed such that an LSTM-AE architecture can be passed to initialize
+        the model, and the class will automatically check whether the passed specification
+        is a valid (symmetric) architecture.
+"""
+
 import keras
 import numpy as np
 import pandas as pd

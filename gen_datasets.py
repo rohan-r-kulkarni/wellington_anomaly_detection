@@ -1,7 +1,8 @@
-from data_generation import gen_data
 """
 Execute this file to create 100 datasets via random seeds.
 """
+
+from data_generation import gen_data
 data_dir = "./data/sim_data"
 
 for seed in range(1, 100):

@@ -1,3 +1,10 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains helper functions used to implement previous classes. It also contains other helper method for plotting.
+Part of simulation toolset.
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

@@ -1,3 +1,13 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+This is the main model execution file that contains
+    - utility class `OutlierMetric` that enables the classification of
+        outliers using different methods.
+    - other helper functions that enable the execution of LSTM-AE models,
+        see docstrings for documentation.
+"""
+
 import numpy as np
 import keras
 import tensorflow as tf
