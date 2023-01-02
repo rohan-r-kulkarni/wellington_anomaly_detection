@@ -21,8 +21,10 @@ class SingleCompanyEDA:
         -----------------------------------------------------
         Parameters:
 
-        - company: string, the name of the company
-        - data: pandas.DataFrame, the data (company's credit card transaction data)
+        - company: string
+                   the name of the company
+        - data: pandas.DataFrame
+                the data (company's credit card transaction data)
         """
 
         self.company = company
@@ -58,14 +60,15 @@ class SingleCompanyEDA:
 
         sm.graphics.tsa.plot_pacf(self.data['data'], title = "Partial Correlation Plot of Company"+self.company)
 
-    def stlDecompositon(self, period):
+    def stlDecompositon(self, period: int):
         """
         Conduct STL decomposition to the time series
 
         ---------------------------------------------------
         Parameters:
 
-        - period: int, the length of the period for the seasonal part
+        - period: int
+                  the length of the period for the seasonal part
         """
 
         self.stlResults = seasonal_decompose(self.data['data'], period=period)
@@ -99,7 +102,7 @@ class SingleCompanyEDA:
 
         self.stlResults.plot()
 
-    def pp_test(self, data):
+    def pp_test(self, data: pd.Series):
         """
         Conduct the Phillips-Perron test on given data
 
@@ -114,7 +117,7 @@ class SingleCompanyEDA:
         pp = PhillipsPerron(data)
         print(pp.summary().as_text())
 
-    def boxplot(self, data):
+    def boxplot(self, data: pd.Series):
         """
         Plot the boxplot of the given data
 
@@ -128,7 +131,7 @@ class SingleCompanyEDA:
 
         sns.boxplot(data)
 
-    def hist(self, data):
+    def hist(self, data: pd.Series):
         """
         Plot the histogram of the given data
         Mark the data points which are three standard deviations away from the mean as red
