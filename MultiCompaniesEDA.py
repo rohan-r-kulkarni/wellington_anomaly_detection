@@ -1,3 +1,9 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains EDA class MultiCompaniesEDA for the EDA pipeline of multiple companies.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -6,16 +12,17 @@ import statsmodels.api as sm
 from arch.unitroot import PhillipsPerron
 from statsmodels.tsa.seasonal import seasonal_decompose
 
+
 class MultiCompaniesEDA:
     """
     Combine multiple companies together to do the data analysis
     """
 
-    def __init__(self,company_list: np.array, data: pd.DataFrame):
+    def __init__(self, company_list: np.array, data: pd.DataFrame):
         """
         Read the data (data is the company's credit card transaction data)
         Get the first order differenced time series
-        
+
         --------------------------------------------------------------------------
         Parameters:
         - company_list: numpy.array
@@ -25,10 +32,10 @@ class MultiCompaniesEDA:
         """
 
         self.company_list = company_list
-        self.companyseries = pd.DataFrame(data[(data["Unnamed: 0"].\
-            isin(company_list))][data.columns].\
-            dropna().\
-            groupby(['trans_date', 'Unnamed: 0'])['Unnamed: 0','data'].mean().unstack())
+        self.companyseries = pd.DataFrame(data[(data["Unnamed: 0"].
+                                                isin(company_list))][data.columns].
+                                          dropna().
+                                          groupby(['trans_date', 'Unnamed: 0'])['Unnamed: 0', 'data'].mean().unstack())
 
         # first ordered differenced time series of multiple companies
         self.companies_d1 = self.companyseries.diff().dropna()
@@ -49,7 +56,7 @@ class MultiCompaniesEDA:
 
         data.plot()
 
-    def plot_autocorrelation_among_companies(self,data: pd.DataFrame):
+    def plot_autocorrelation_among_companies(self, data: pd.DataFrame):
         """
         Plot the autocorrelation among multiple companies
         You can plot the autocorrelation of the original time series of multiple companies.
@@ -78,5 +85,5 @@ class MultiCompaniesEDA:
                 It could be original data :self.companyseries
                 It could also be first order differenced data self.companies_d1
         """
-        
+
         data.corr().style.background_gradient(cmap='coolwarm')
