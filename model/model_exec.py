@@ -19,10 +19,11 @@ from scipy.stats import norm
 from sklearn.metrics import pairwise_distances
 from typing import Iterable
 
+
 class OutlierMetric:
     """Class to organize outlier classification metric functions"""
 
-    def quantile_outlier(self, l:Iterable, thresh=0.05):
+    def quantile_outlier(self, l: Iterable, thresh=0.05):
         """Decides that the top (100*thresh)% are outliers
 
         :param l: data
@@ -34,7 +35,7 @@ class OutlierMetric:
         cutoff = np.quantile([np.abs(x) for x in l], 1 - thresh)
         return [idx for idx in range(len(l)) if np.abs(l[idx]) >= cutoff]
 
-    def bb_outlier(self, l:Iterable, thresh=0.05):
+    def bb_outlier(self, l: Iterable, thresh=0.05):
         """Decides that the observation k standard deviation outliers of mean
         are outliers, like a bollinger band.
 
@@ -50,7 +51,7 @@ class OutlierMetric:
         lb = np.mean(l) - np.std(l) * std_mult
         return [idx for idx in range(len(l)) if l[idx] >= ub or l[idx] <= lb]
 
-    def iqr_outlier(self, l:Iterable):
+    def iqr_outlier(self, l: Iterable):
         """Decides that the observations 1.5 IQR away from 75 quantile and 25
         quantile are outliers.
 
@@ -109,9 +110,10 @@ def get_outliers(
     if cross_feature_check:
         mu = pairwise_distances.mean()
         sig = pairwise_distances.std()
-        std_mult = norm.ppf(1 - kwargs['thresh'] / 2) if 'thresh' in kwargs else norm.ppf(1 - 0.1 / 2)
+        std_mult = norm.ppf(
+            1 - kwargs['thresh'] / 2) if 'thresh' in kwargs else norm.ppf(1 - 0.1 / 2)
         ub, lb = mu + sig * std_mult, mu - sig * std_mult
-        check_idx =  np.array([
+        check_idx = np.array([
             [idx for idx in range(len(l)) if l[idx] >= ub or l[idx] <= lb]
             for l in pairwise_distances.T
         ])
@@ -120,7 +122,8 @@ def get_outliers(
         for i in range(num_features):
             indices.append(
                 np.array(
-                    [idx for idx in outlier_func(pairwise_distances[:, i], **kwargs) if idx in check_idx[i]]
+                    [idx for idx in outlier_func(
+                        pairwise_distances[:, i], **kwargs) if idx in check_idx[i]]
                 )
             )
     else:
@@ -133,13 +136,13 @@ def get_outliers(
 
 def lstm_run(
     model,
-    train_data:np.ndarray,
-    test_data:np.ndarray,
-    batch_size:int,
-    metric:str="top",
-    thresh:float=0.05,
-    epoch:int=80,
-    early_stopping:bool=False,
+    train_data: np.ndarray,
+    test_data: np.ndarray,
+    batch_size: int,
+    metric: str = "top",
+    thresh: float = 0.05,
+    epoch: int = 80,
+    early_stopping: bool = False,
     cross_feature_check: bool = False,
 
 ):
@@ -167,7 +170,8 @@ def lstm_run(
     seq_size = model.seq_size
     model.compile(optimizer="adam", loss="mse")
     if early_stopping:
-        callback = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
+        callback = tf.keras.callbacks.EarlyStopping(
+            monitor="loss", patience=10)
         history = model.fit(
             train_data,
             train_data,
@@ -176,7 +180,8 @@ def lstm_run(
             callbacks=[callback],
         )
     else:
-        history = model.fit(train_data, train_data, epochs=epoch, batch_size=batch_size)
+        history = model.fit(train_data, train_data,
+                            epochs=epoch, batch_size=batch_size)
     model.save("lstm_model")
 
     # model prediction/reconstruction
@@ -194,49 +199,7 @@ def lstm_run(
         cross_feature_check=cross_feature_check
     )
 
-    # print(f"Distances: {pairwise_distances(test_reconstructed, pred_reconstructed)}")
-    #
-    # indx = {}
-    # n = int(len(test_reconstructed) * thresh)
-    # indx["top"] = np.argpartition(distances, -n)[-n:]
-    # indx["quantile"] = metrics.quantile_outlier(distances, thresh=thresh)
-    # indx["bb"] = metrics.bb_outlier(distances, thresh=thresh)
-    # indx["iqr"] = metrics.iqr_outlier(distances)
-    #
-    # if metric == "all":
-    #     ind = indx
-    # else:
-    #     ind = indx[metric]
-
     return pred_reconstructed, ind, history
-
-
-# def dense_run(
-#     train_data, test_data, n_feature, batch_size, metric="top", thresh=0.05, epoch=80
-# ):
-#     # model training and prediction
-#     model = DENSE_Model(n_feature)
-#     model.compile(optimizer="adam", loss="mse")
-#     model.fit(train_data, train_data, epochs=epoch, batch_size=batch_size)
-#     model.save("dense_model")
-
-#     # model prediction/reconstruction
-#     model = keras.models.load_model("dense_model")
-#     pred = model.predict(test_data)
-#     print(pred.shape, test_data.shape)
-
-#     distances = pairwise_distances_no_broadcast(test_data, pred)
-
-#     if metric == "top":
-#         # top 1000 outliers
-#         n = int(len(test_data) * thresh)
-#         ind = np.argpartition(distances, -n)[-n:]
-#     elif metric == "quantile":
-#         ind = quantile_outlier(distances, thresh=thresh)
-#     elif metric == "bb":
-#         ind = bb_outlier(distances)
-
-#     return pred, ind
 
 
 def temporalize(X, seq_size):
@@ -250,7 +213,7 @@ def temporalize(X, seq_size):
     output_X = []
 
     for i in range(len(X) - seq_size + 1):
-        output_X.append(X[i : i + seq_size, :])
+        output_X.append(X[i: i + seq_size, :])
 
     return np.array(output_X)
 
@@ -282,8 +245,8 @@ def reconstruction(seq_data, n_features):
 
 
 if __name__ == "__main__":
-    x = np.random.random(size = [10, 10])
-    x[1,1] += 5
+    x = np.random.random(size=[10, 10])
+    x[1, 1] += 5
     print(x)
     print()
     print(x.std())
