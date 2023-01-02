@@ -10,7 +10,7 @@ import pandas as pd
 import os
 
 # global variables
-data_dir = "./data"
+data_dir = "../data"
 credit_subdir = os.path.join(data_dir, "credit")
 sales_subdir = os.path.join(data_dir, "sales")
 max_lag = 5
