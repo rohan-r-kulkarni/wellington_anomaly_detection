@@ -42,8 +42,8 @@ class DataGeneration:
         seq_normal = []
         seq_outlier = []
         for i in range(len(self.data_normal) - self.seq_size):
-            seq_normal.append(self.data_normal[i : i + self.seq_size])
-            seq_outlier.append(self.data_outlier[i : i + self.seq_size])
+            seq_normal.append(self.data_normal[i: i + self.seq_size])
+            seq_outlier.append(self.data_outlier[i: i + self.seq_size])
         return np.array(seq_normal), np.array(seq_outlier)
 
     def multi_data(self):
@@ -182,7 +182,7 @@ def temporalize(X, seq_size: int):
     output_X = []
 
     for i in range(len(X) - seq_size + 1):
-        output_X.append(X[i : i + seq_size, :])
+        output_X.append(X[i: i + seq_size, :])
 
     return output_X
 
@@ -242,11 +242,13 @@ if __name__ == "__main__":
     x_reconstructed = reconstruction(x_normal, n_feature, seq_size)
     pred_reconstructed = reconstruction(pred, n_feature, seq_size)
 
-    distances = pairwise_distances_no_broadcast(x_reconstructed, pred_reconstructed)
+    distances = pairwise_distances_no_broadcast(
+        x_reconstructed, pred_reconstructed)
     ind = np.argpartition(distances, -1000)[-1000:]
 
     print(ind)
     print(distances[ind])
     # plotting
-    helper.plot(args=x_reconstructed.T, preds=pred_reconstructed.T, markers=ind)
+    helper.plot(args=x_reconstructed.T,
+                preds=pred_reconstructed.T, markers=ind)
     print("done")
