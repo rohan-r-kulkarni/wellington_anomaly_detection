@@ -1,3 +1,9 @@
+"""
+IEOR4742 - Wellington Management Anomaly Detection, Fall 2022
+
+contains EDA class SingleCompanyEDA for the EDA pipeline of a single company.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -6,13 +12,13 @@ import statsmodels.api as sm
 from arch.unitroot import PhillipsPerron
 from statsmodels.tsa.seasonal import seasonal_decompose
 
+
 class SingleCompanyEDA:
     """
     Conduct some exploratory data analysis on the data provided
     """
 
-
-    def __init__(self, company: np.array, data: pd.DataFrame):
+    def __init__(self, company: str, data: pd.DataFrame):
         """
         Read the data (data is the company's credit card transaction data)
         Get the first order differenced time series
@@ -29,9 +35,9 @@ class SingleCompanyEDA:
 
         self.company = company
         self.data = data[data["Unnamed: 0"] == self.company]
-        self.data.set_index('trans_date',inplace=True)
+        self.data.set_index('trans_date', inplace=True)
         self.data.dropna(inplace=True)
-        
+
         # store the STL decomposition results
         self.stlResults = None
 
@@ -51,14 +57,16 @@ class SingleCompanyEDA:
         plot the autocorrealtion function of the time series
         """
 
-        sm.graphics.tsa.plot_acf(self.data['data'], title="Autocorrelation Plot of Company"+self.company)
+        sm.graphics.tsa.plot_acf(
+            self.data['data'], title="Autocorrelation Plot of Company"+self.company)
 
     def plot_pacf(self):
         """
         plot the partial correaltion function of the time series
         """
 
-        sm.graphics.tsa.plot_pacf(self.data['data'], title = "Partial Correlation Plot of Company"+self.company)
+        sm.graphics.tsa.plot_pacf(
+            self.data['data'], title="Partial Correlation Plot of Company"+self.company)
 
     def stlDecompositon(self, period: int):
         """
@@ -143,11 +151,11 @@ class SingleCompanyEDA:
                 It could be original data :self.data['data']
                 It could also be first order differenced data self.diff
         """
-        
+
         data_mean, data_std = data.mean(), data.std()
         cut_off = data_std * 3
         lower, upper = data_mean - cut_off, data_mean + cut_off
 
         sns.histplot(data, bins=70)
-        plt.axvspan(xmin = lower,xmax= data.min(),alpha=0.2, color='red')
-        plt.axvspan(xmin = upper,xmax= data.max(),alpha=0.2, color='red')
+        plt.axvspan(xmin=lower, xmax=data.min(), alpha=0.2, color='red')
+        plt.axvspan(xmin=upper, xmax=data.max(), alpha=0.2, color='red')
