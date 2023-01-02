@@ -12,7 +12,7 @@ class SingleCompanyEDA:
     """
 
 
-    def __init__(self, company, data):
+    def __init__(self, company: np.array, data: pd.DataFrame):
         """
         Read the data (data is the company's credit card transaction data)
         Get the first order differenced time series
