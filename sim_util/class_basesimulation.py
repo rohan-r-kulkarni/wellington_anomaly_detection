@@ -8,7 +8,7 @@ Part of simulation toolset.
 import numpy as np
 import pandas as pd
 import warnings
-from class_simulationhelper import SimulationHelpers
+from sim_util.class_simulationhelper import SimulationHelpers
 from collections.abc import Iterable
 from scipy.stats import norm, t
 from scipy.ndimage import shift as scipyshift

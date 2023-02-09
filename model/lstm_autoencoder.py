@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 import random
 import tensorflow as tf
-from ..sim_util.class_basesimulation import BaseSimulation
-from ..sim_util.class_simulationhelper import SimulationHelpers
+from sim_util.class_basesimulation import BaseSimulation
+from sim_util.class_simulationhelper import SimulationHelpers
 from collections.abc import Iterable
 from pyod.utils.stat_models import pairwise_distances_no_broadcast
 from typing import List

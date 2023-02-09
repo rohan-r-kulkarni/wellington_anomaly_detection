@@ -12,8 +12,8 @@ import numpy as np
 import keras
 import tensorflow as tf
 import warnings
-from ..sim_util.data_generation import gen_data
-from lstm_autoencoder import reconstruction
+from sim_util.data_generation import gen_data
+from model.lstm_autoencoder import reconstruction
 from pyod.utils import pairwise_distances_no_broadcast
 from scipy.stats import norm
 from sklearn.metrics import pairwise_distances

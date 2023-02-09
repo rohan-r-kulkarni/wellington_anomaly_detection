@@ -10,7 +10,7 @@ import pandas as pd
 import os
 
 # global variables
-data_dir = "../data"
+data_dir = "./data"
 credit_subdir = os.path.join(data_dir, "credit")
 sales_subdir = os.path.join(data_dir, "sales")
 max_lag = 5
@@ -42,7 +42,10 @@ d1.columns = [f"{col}_d1" for col in credit.columns]
 d2 = d1.diff()
 d2.columns = [f"{col}_d2" for col in credit.columns]
 # percentage change
-ret = pd.DataFrame(d1.values / credit.values)
+#ret = pd.DataFrame(d1.values / credit.values) #! FAILS
+
+ret = pd.DataFrame(d1.iloc[1:, :].values / credit.iloc[1:, :].values)
+
 ret.columns = [f"{col}_ret" for col in credit.columns]
 ret.index = credit.index
 

@@ -7,7 +7,7 @@ in `class_basesimulation` in `class_basesimulation`. Part of simulation toolset.
 
 import numpy as np
 import warnings
-from class_basesimulation import BaseSimulation
+from sim_util.class_basesimulation import BaseSimulation
 from collections.abc import Iterable
 from typing import Union, Callable
 
