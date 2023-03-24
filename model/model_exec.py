@@ -139,7 +139,7 @@ def lstm_run(
     train_data: np.ndarray,
     test_data: np.ndarray,
     batch_size: int,
-    metric: str = "top",
+    metric: str = "bb",
     thresh: float = 0.05,
     epoch: int = 80,
     early_stopping: bool = False,

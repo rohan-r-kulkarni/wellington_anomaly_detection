@@ -236,6 +236,7 @@ if __name__ == "__main__":
     # model.save('tmp_model')
 
     # model prediction/reconstruction
+    
     model = keras.models.load_model("tmp_model")
     pred = model.predict(x_normal)
 
