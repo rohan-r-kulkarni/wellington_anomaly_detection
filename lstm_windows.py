@@ -7,12 +7,26 @@ import tensorflow as tf
 from sim_util.class_simulationhelper import SimulationHelpers
 from model.lstm_autoencoder import DataGeneration, LSTM_Model_Base, reconstruction
 from model.model_exec import get_outliers, lstm_run, reconstruction, temporalize
+import logging
+import os
+import sys
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Set logging level to suppress INFO messages
+logging.getLogger('tensorflow').setLevel(logging.WARN) 
 
+if len(sys.argv) != 5:
+    print("ERROR: run with python3 lstm_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
+    sys.exit()
 
-BATCH_SIZE = 10
-EPOCHS = 30
-SEQ_SIZE = 5 #lookback window for LSTM
-WINDOW_SIZE = 10
+_, BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE = sys.argv
+BATCH_SIZE = int(BATCH_SIZE)
+EPOCHS = int(EPOCHS)
+SEQ_SIZE = int(SEQ_SIZE)
+WINDOW_SIZE = int(WINDOW_SIZE)
+
+# BATCH_SIZE = 10
+# EPOCHS = 30
+# SEQ_SIZE = 5 #lookback window for LSTM
+# WINDOW_SIZE = 10
 
 company_ind = 1 #consider particular company
 n_feature = 1
@@ -176,3 +190,15 @@ for i in anomalous_ind:
     plt.figure()
     window_loss_plot(reconstructs[i], origs[i], start = region[0], stop=region[1], all=True, plot=True, legend=True)
     plt.show()
+
+filename = "windows" + str(WINDOW_SIZE) + "_ep" + str(EPOCHS) + "bs" + str(BATCH_SIZE) + ".txt"
+with open("lstm_windows_res/" + filename, "w") as outfile:
+    outfile.write(str(anomalous_ind))
+    outfile.write("\n")
+    outfile.write(str(losses))
+    outfile.write("\n")
+    outfile.write(str(windows.tolist()))
+    outfile.write("\n")
+    outfile.write(str(reconstructs[0].reshape(1,-1).tolist()))
+    outfile.write("\n")
+    outfile.write(str(origs[0].reshape(1,-1).tolist()))
