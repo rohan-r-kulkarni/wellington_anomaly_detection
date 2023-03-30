@@ -4,7 +4,7 @@
 \
   **Project**: Wellington Management - Multivariate Time-Series Anomaly Detection\
   **Contributors**: Rohan R. Kulkarni, Ethan Li, Ruoyu Lin, Tianhao (Raymond) Liu, Guangrui Xue\
-  **Contributors**: Daniel Fernandez, Yossi Cohen (Wellington Management), Ali Hirsa (Columbia IEOR)
+  **Supervisors**: Daniel Fernandez, Yossi Cohen (Wellington Management), Ali Hirsa (Columbia IEOR)
   \
   This is a project repository for 2022-2023 Columbia Engineering AI Applications in Finance Wellington Management (group 1).
 
