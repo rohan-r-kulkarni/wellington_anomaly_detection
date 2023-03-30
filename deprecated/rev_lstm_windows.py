@@ -1,6 +1,6 @@
 import sys
 if len(sys.argv) != 5:
-    print("ERROR: run with python3 lstm_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
+    print("ERROR: run with python3 rev_lstm_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
     sys.exit()
 
 import keras
@@ -67,7 +67,6 @@ data_test = data[partition_size:]
 data_train_seq = temporalize(data_train, SEQ_SIZE)
 data_test_seq = temporalize(data_test, SEQ_SIZE)
 
-#TODO: implement fully
 def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plot=True, ax=None, legend = False):
 
     if not all:
@@ -97,18 +96,17 @@ def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plo
     # we can now quantify the reconstruction loss in just this window
     return tf.get_static_value(tf.keras.losses.mse(pred_window, act_window))
 
-def window_traintest(start, end, SEQ_SIZE=5):
+def window_traintest(start, end, seq_size=SEQ_SIZE): #! unused since online train on rolling window
     window_start = start
     window_end = end
-    temporalize_before = temporalize(data[0:window_start], SEQ_SIZE)
-    data_window_seq = temporalize(data[window_start:window_end], SEQ_SIZE)
-    temporalize_after = temporalize(data[window_end:], SEQ_SIZE)
+    temporalize_before = temporalize(data[0:window_start], seq_size)
+    data_window_seq = temporalize(data[window_start:window_end], seq_size)
+    temporalize_after = temporalize(data[window_end:], seq_size)
     data_train_seq = np.concatenate((temporalize_before, temporalize_after), axis=0)
 
     return data_train_seq, data_window_seq
 
 mae = tf.keras.losses.MeanAbsoluteError()
-
 model = LSTM_Model_Base(
         SEQ_SIZE, 
         n_feature, 
@@ -120,18 +118,7 @@ model = LSTM_Model_Base(
         mid_activation=tf.nn.tanh
     )
 n_feature = model.n_feature
-model.compile(optimizer="adam", loss="mae")
-
-def lstm_windows(train_data, test_data, seq_size=SEQ_SIZE, n_feature = n_feature):
-    
-    history = model.fit(train_data, train_data,
-                                epochs=EPOCHS, batch_size=BATCH_SIZE)
-
-    pred = model(test_data)
-    pred_reconstructed = reconstruction(pred, n_feature)
-    test_reconstructed = reconstruction(test_data, n_feature)
-
-    return mae(pred_reconstructed,test_reconstructed).numpy(), pred_reconstructed, test_reconstructed
+model.compile(optimizer="adam", loss="mae")    
 
 # window_loss_plot(data,np.random.rand(len(data)).reshape(-1,1),all=True,plot=True)
 # plt.show()
@@ -140,14 +127,33 @@ losses = []
 reconstructs = []
 origs = []
 
-#moving windows over 10-1000 day range
-for i in range(10,1000-WINDOW_SIZE+1, ROLLING_STEP):
+
+#moving windows over 1000 day range
+for i in range(0,1000-WINDOW_SIZE+1, ROLLING_STEP):
     print(str(i) + ", " + str(i+WINDOW_SIZE))
-    train, test = window_traintest(i,i+WINDOW_SIZE)
-    loss, reconstruct, original = lstm_windows(train, test)
-    losses.append(loss)
-    reconstructs.append(reconstruct)
-    origs.append(original)
+    train_seq = temporalize(data[i:i+WINDOW_SIZE], SEQ_SIZE)
+    history = model.fit(train_seq, train_seq,
+                        epochs=EPOCHS, batch_size=BATCH_SIZE) #! only training
+
+
+wstarts = np.arange(0, 1000-WINDOW_SIZE+1, ROLLING_STEP)
+windows = np.array(list(zip(wstarts, wstarts+WINDOW_SIZE)))
+
+test = temporalize(data, SEQ_SIZE)
+pred = model(test)
+pred_reconstructed = reconstruction(pred, n_feature)
+
+#     pred_reconstructed = reconstruction(pred, n_feature)
+#     test_reconstructed = reconstruction(test_data, n_feature)
+
+#     return mae(pred_reconstructed,test_reconstructed).numpy(), pred_reconstructed, test_reconstructed
+
+losses = mae(pred_reconstructed,data).numpy()
+print(losses)
+# reconstructs.append(reconstruct)
+# origs.append(original)
+
+
 
 #plot the loss histogram
 plt.hist(losses, bins="auto")
@@ -156,31 +162,30 @@ plt.ylabel("No. of Windows")
 plt.xlabel("Reconstruction Loss")
 plt.show()
 
+
 #two standard devs
 #visualize high reconstruction loss windows
-threshold = np.mean(losses) + 2*np.std(losses) # beyond a std dev
-# threshold = np.mean(losses) - np.mean(losses)  #dummy
+# threshold = np.mean(losses) + 2*np.std(losses) # beyond a std dev
+threshold = np.mean(losses) - np.mean(losses)  #dummy
 
-wstarts = np.arange(10, 1000-WINDOW_SIZE+1, ROLLING_STEP)
-windows = np.array(list(zip(wstarts, wstarts+WINDOW_SIZE)))
+
 anomalous_ind = [i for i, x in enumerate(losses > threshold) if x]
 
 #plot reconstructions of high loss windows
-#window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plot=True, ax=None, legend = False)
-for i in anomalous_ind:
-    region = windows[i]
-    plt.figure()
-    window_loss_plot(reconstructs[i], origs[i], start = region[0], stop=region[1], all=True, plot=True, legend=True)
-    plt.show()
+# for i in anomalous_ind:
+#     region = windows[i]
+#     plt.figure()
+#     window_loss_plot(reconstructs[i], origs[i], start = region[0], stop=region[1], all=True, plot=True, legend=True)
+#     plt.show()
 
-filename = "windows" + str(WINDOW_SIZE) + "_ep" + str(EPOCHS) + "bs" + str(BATCH_SIZE) + ".txt"
-with open("lstm_windows_res/" + filename, "w") as outfile:
-    outfile.write(str(anomalous_ind))
-    outfile.write("\n")
-    outfile.write(str(losses))
-    outfile.write("\n")
-    outfile.write(str(windows.tolist()))
-    outfile.write("\n")
-    outfile.write(str(reconstructs[0].reshape(1,-1).tolist())) #! fix, not saved properly
-    outfile.write("\n")
-    outfile.write(str(origs[0].reshape(1,-1).tolist())) #! fix, not saved properly
+# filename = "windows" + str(WINDOW_SIZE) + "_ep" + str(EPOCHS) + "bs" + str(BATCH_SIZE) + ".txt"
+# with open("lstm_windows_res/" + filename, "w") as outfile:
+#     outfile.write(str(anomalous_ind))
+#     outfile.write("\n")
+#     outfile.write(str(losses))
+#     outfile.write("\n")
+#     outfile.write(str(windows.tolist()))
+#     outfile.write("\n")
+#     outfile.write(str(reconstructs[0].reshape(1,-1).tolist()))
+#     outfile.write("\n")
+#     outfile.write(str(origs[0].reshape(1,-1).tolist()))
