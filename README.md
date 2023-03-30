@@ -3,10 +3,10 @@
 ## Description
 \
   **Project**: Wellington Management - Multivariate Time-Series Anomaly Detection\
-  **Contributors**: Lin, Ruoyu; Liu, Tianhao (Raymond); Xue, Guangrui. \
+  **Contributors**: Rohan R. Kulkarni, Ethan Li, Ruoyu Lin, Tianhao (Raymond) Liu, Guangrui Xue\
   \
-  This is a project repository for 2022 Columbia Engineering IEOR4742 Deep Learning for FE and OR, Wellington Management Group 1. By the time this is written down in Dec. 2022, the group has implemented a preliminary LSTM-AutoEncoder anomaly detector. 
-
+  This is a project repository for 2022-2023 Columbia Engineering AI Applications in Finance Wellington Management (group 1).
+  Supervisors: Daniel Fernandez, Yossi Cohen (Wellington Management), Ali Hirsa (Columbia IEOR)
 
 ## Files 
 - Simulation Toolkit (`./sim_util`):
