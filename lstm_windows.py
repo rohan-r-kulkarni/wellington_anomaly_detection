@@ -67,7 +67,6 @@ data_test = data[partition_size:]
 data_train_seq = temporalize(data_train, SEQ_SIZE)
 data_test_seq = temporalize(data_test, SEQ_SIZE)
 
-#TODO: implement fully
 def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plot=True, ax=None, legend = False):
 
     if not all:
@@ -98,12 +97,14 @@ def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plo
     return tf.get_static_value(tf.keras.losses.mse(pred_window, act_window))
 
 def window_traintest(start, end, SEQ_SIZE=5):
+    #! forecasting change, only predict on period before the window
     window_start = start
     window_end = end
     temporalize_before = temporalize(data[0:window_start], SEQ_SIZE)
     data_window_seq = temporalize(data[window_start:window_end], SEQ_SIZE)
     temporalize_after = temporalize(data[window_end:], SEQ_SIZE)
-    data_train_seq = np.concatenate((temporalize_before, temporalize_after), axis=0)
+    # data_train_seq = np.concatenate((temporalize_before, temporalize_after), axis=0)
+    data_train_seq = temporalize_before
 
     return data_train_seq, data_window_seq
 
@@ -158,7 +159,7 @@ plt.show()
 
 #two standard devs
 #visualize high reconstruction loss windows
-threshold = np.mean(losses) + 2*np.std(losses) # beyond a std dev
+threshold = np.mean(losses) + np.std(losses) # beyond a std dev
 # threshold = np.mean(losses) - np.mean(losses)  #dummy
 
 wstarts = np.arange(10, 1000-WINDOW_SIZE+1, ROLLING_STEP)
@@ -181,6 +182,7 @@ with open("lstm_windows_res/" + filename, "w") as outfile:
     outfile.write("\n")
     outfile.write(str(windows.tolist()))
     outfile.write("\n")
-    outfile.write(str(reconstructs[0].reshape(1,-1).tolist())) #! fix, not saved properly
+
+    outfile.write(str(np.array(reconstructs).reshape(1,-1).tolist())) 
     outfile.write("\n")
-    outfile.write(str(origs[0].reshape(1,-1).tolist())) #! fix, not saved properly
+    outfile.write(str(np.array(origs).reshape(1,-1).tolist()))

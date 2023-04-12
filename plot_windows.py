@@ -1,15 +1,17 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# import tensorflow as tf
+import tensorflow as tf
 
 import sys
 if len(sys.argv) == 1:
+    default = True
     SEQ_SIZE = 5
 else:
     if len(sys.argv) != 5:
         print("ERROR: run with plot_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
         sys.exit()
+    default = False
     _, BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE = sys.argv
     BATCH_SIZE = int(BATCH_SIZE)
     EPOCHS = int(EPOCHS)
@@ -29,47 +31,6 @@ def read_from_file(bs, ep, ss, ws):
     file.close()
     return tuple([anomalous_ind, losses, windows, reconstructs, origs])
 
-w5 = read_from_file(300, 10, SEQ_SIZE, 5)
-w10 = read_from_file(100, 10, SEQ_SIZE, 10)
-w15 = read_from_file(100, 10, SEQ_SIZE, 15)
-w20 = read_from_file(100, 10, SEQ_SIZE, 20)
-w25 = read_from_file(100, 10, SEQ_SIZE, 25)
-w50 = read_from_file(100, 10, SEQ_SIZE, 50)
-
-# binslist = [25,50,75,100,150,200,250]
-binslist = [100]
-
-for bin in binslist:
-    plt.hist(w5[1], bins=bin, label="Window Size = 5")
-    plt.hist(w10[1], bins=bin, label="Window Size = 10")
-    plt.hist(w15[1], bins=bin, label="Window Size = 15")
-    plt.hist(w20[1], bins=bin, label="Window Size = 20")
-    plt.hist(w25[1], bins=bin, label="Window Size = 25")
-    plt.hist(w25[1], bins=bin, label="Window Size = 50")
-
-    plt.title("Reconstruction Losses varying Window Sizes")
-    plt.ylabel("No. of Windows")
-    plt.xlabel("Reconstruction Loss")
-    plt.legend()
-    plt.show()
-
-    #show beyond the majority
-    plt.hist(w5[1], bins=bin, label="Window Size = 5")
-    plt.hist(w10[1], bins=bin, label="Window Size = 10")
-    plt.hist(w15[1], bins=bin, label="Window Size = 15")
-    plt.hist(w20[1], bins=bin, label="Window Size = 20")
-    plt.hist(w25[1], bins=bin, label="Window Size = 25")
-    plt.hist(w25[1], bins=bin, label="Window Size = 50")
-
-    plt.title("Reconstruction Losses varying Window Sizes")
-    plt.ylabel("No. of Windows")
-    plt.xlabel("Reconstruction Loss")
-    plt.legend()
-    plt.xlim([0.02, 1.4])
-    plt.ylim([0, 10])
-    plt.show()
-
-#TODO: implement fully
 def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plot=True, ax=None, legend = False):
 
     if not all:
@@ -78,6 +39,9 @@ def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plo
     else:
         pred_window = reconstruct[:,0]
         act_window = orig[:,0]
+        start = 0
+        stop = len(pred_window)
+        
 
     if plot:
         if ax is None:
@@ -98,6 +62,81 @@ def window_loss_plot(reconstruct, orig, all = False, start=None, stop=None,  plo
                 ax.legend()        
     # we can now quantify the reconstruction loss in just this window
     return tf.get_static_value(tf.keras.losses.mse(pred_window, act_window))
+
+def plot_anomalous(data, format_sizetitle, save = True, show=True):
+    loss = np.array(data[1])
+    all_windows = np.array(data[2])
+    reconstructs = np.array(data[3])[0].reshape(-1, 1)
+    origs = np.array(data[4])[0].reshape(-1, 1)
+    threshold = np.mean(loss) + np.std(loss) # beyond a std dev
+
+    anomalous_ind = [i for i, x in enumerate(loss > threshold) if x]
+    for j in anomalous_ind:
+        region = all_windows[j]
+        plt.figure()
+        window_loss_plot(reconstructs, origs, start = region[0], stop=region[1], all=False, plot=True, legend=True)
+        if save: # modeling assumption: training occurs in the first 100 time series points
+            plt.savefig("lstm_windows_res/anom_plots/" + format_sizetitle + "/anom_" + str(j) + ".png")
+        if show:
+            plt.show()
+
+if default:
+    wsizes = [5, 10, 15, 20, 25, 50]
+    wdata = np.empty(len(wsizes), dtype=object)
+
+    wdata[0] = read_from_file(300, 10, SEQ_SIZE, 5)
+    wdata[1] = read_from_file(100, 10, SEQ_SIZE, 10)
+    wdata[2] = read_from_file(100, 10, SEQ_SIZE, 15)
+    wdata[3] = read_from_file(100, 10, SEQ_SIZE, 20)
+    wdata[4] = read_from_file(100, 10, SEQ_SIZE, 25)
+    wdata[5] = read_from_file(100, 10, SEQ_SIZE, 50)
+
+    bin = 100
+
+    for i in range(len(wsizes)):
+        plt.hist(wdata[i][1], bins=bin, label="Window Size = " + str(wsizes[i]))
+
+    plt.title("Reconstruction Losses varying Window Sizes")
+    plt.ylabel("No. of Windows")
+    plt.xlabel("Reconstruction Loss")
+    plt.legend()
+    plt.savefig("lstm_windows_res/hist_plots/hist_default.png")
+    # plt.show()
+
+    #show all range for each window size
+    #? Optional
+    # for i in range(len(wsizes)):
+    #     reconstructs = np.array(wdata[i][3])[0].reshape(-1, 1)
+    #     origs = np.array(wdata[i][4])[0].reshape(-1, 1)
+
+    #     window_loss_plot(reconstructs, origs, all=True, plot=True, legend=True)
+    #     # plt.show()
+    
+    for i in range(len(wsizes)):
+        plot_anomalous(wdata[i], "window_" + str(wsizes[i]), save=True, show=False)
+
+else:
+    w = read_from_file(BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE)
+
+    bin = 100
+
+    plt.hist(w[1], bins=bin, label="Window Size = " + str(WINDOW_SIZE))
+
+    plt.title("Reconstruction Losses varying Window Sizes")
+    plt.ylabel("No. of Windows")
+    plt.xlabel("Reconstruction Loss")
+    plt.legend()
+    plt.show()
+
+    reconstructs = np.array(w[3])[0].reshape(-1, 1)
+    origs = np.array(w[4])[0].reshape(-1, 1)
+
+    window_loss_plot(reconstructs, origs, all=True, plot=True, legend=True)
+    plt.show()
+
+
+
+
 
 #! fix saving of reconstruct data, not saved properly!!
 # for wind in [w5, w10, w15]:
