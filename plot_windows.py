@@ -25,7 +25,7 @@ else:
     DEFAULT_PLOT = False
     SHOW_RANGE = False
 
-print("plotting...")
+print("Plotting...")
 
 #build the LSTMWindowPlot object to run methods
 lstm_window_plot = LSTMWindowPlot()
@@ -57,7 +57,7 @@ if DEFAULT_PLOT:
     plt.legend()
 
     if SAVE_NO_SHOW:
-        plt.savefig("lstm_windows_res/hist_plots/hist_default.png")
+        plt.savefig("lstm_windows_res/plots/hist_default.png")
         plt.close()
     else:
         plt.show()
