@@ -6,9 +6,10 @@ import sys
 import tensorflow as tf
 
 if len(sys.argv) == 1:
-    DEFAULT_PLOT = True
     SAVE_NO_SHOW = True
-    SHOW_RANGE = True
+    SHOW_RANGE = False
+    SHOW_ANOM = False
+    DEFAULT_PLOT = True
     SEQ_SIZE = 5
 else:
     if len(sys.argv) != 5:
@@ -21,9 +22,18 @@ else:
     SEQ_SIZE = int(SEQ_SIZE)
     WINDOW_SIZE = int(WINDOW_SIZE)
     BIN = 100
+    DEFAULT_PLOT = False
+    SHOW_RANGE = False
+
+print("plotting...")
 
 #build the LSTMWindowPlot object to run methods
 lstm_window_plot = LSTMWindowPlot()
+
+#load temporal index from featured_credit dataset
+feat_df = pd.read_csv("data/featured_credit.csv")
+feat_df.trans_date = pd.to_datetime(feat_df.trans_date).dt.date
+dtindex = feat_df.sort_values(by="trans_date").trans_date
 
 if DEFAULT_PLOT:
     WSIZES = [5, 10, 15, 20, 25, 50]
@@ -45,8 +55,10 @@ if DEFAULT_PLOT:
     plt.ylabel("No. of Windows")
     plt.xlabel("Reconstruction Loss")
     plt.legend()
+
     if SAVE_NO_SHOW:
         plt.savefig("lstm_windows_res/hist_plots/hist_default.png")
+        plt.close()
     else:
         plt.show()
 
@@ -58,9 +70,9 @@ if DEFAULT_PLOT:
 
             lstm_window_plot.window_loss_plot(reconstructs, origs, all=True, plot=True, legend=True)
             plt.show()
-        
-        for i in range(len(WSIZES)):
-            lstm_window_plot.plot_anomalous(wdata[i], "window_" + str(WSIZES[i]), save=True, show=False)
+
+    for i in range(len(WSIZES)):
+        lstm_window_plot.plot_anomalous(wdata[i], "window_" + str(WSIZES[i]), anomindex = dtindex, save=True, show=SHOW_ANOM)
 
 else:
     w = lstm_window_plot.read_from_file(BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE)
@@ -76,5 +88,8 @@ else:
     reconstructs = np.array(w[3])[0].reshape(-1, 1)
     origs = np.array(w[4])[0].reshape(-1, 1)
 
-    lstm_window_plot.window_loss_plot(reconstructs, origs, all=True, plot=True, legend=True)
-    plt.show()
+    if SHOW_RANGE:
+        lstm_window_plot.window_loss_plot(reconstructs, origs, all=True, plot=True, legend=True)
+        plt.show()
+
+    lstm_window_plot.plot_anomalous(w, "window_" + str(WINDOW_SIZE), anomindex = dtindex, save=False, show=True)

@@ -1,6 +1,0 @@
-Trained on One Model (correct):
-lstm_windows_res/windows10_ep10bs100.txt
-
-
-Dummy:
-lstm_windows_res/windows500_ep1bs500.txt

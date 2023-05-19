@@ -24,7 +24,7 @@ import tensorflow as tf
 np.random.seed(25)
 
 if len(sys.argv) != 5:
-    print("ERROR: run with python3 lstm_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
+    print("ERROR: run with python3 run_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE")
     sys.exit()
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Set logging level to suppress INFO messages
@@ -71,15 +71,6 @@ features = features.apply(standard_scale)
 #train-test split, LSTM temporalize data
 data = features.values[:,COMPANY_IND]
 data = np.expand_dims(data,1)
-TEST_SIZE = 0.4
-partition_size = int(len(data) * (1 - TEST_SIZE))
-
-data_train = data[0:partition_size]
-data_test = data[partition_size:]
-
-data_train_seq = temporalize(data_train, SEQ_SIZE)
-data_test_seq = temporalize(data_test, SEQ_SIZE)
-
 
 model = LSTM_Model_Base(
         SEQ_SIZE, 
@@ -104,7 +95,7 @@ origs = []
 #moving windows over 10-1000 day range
 for i in range(10,1000-WINDOW_SIZE+1, ROLLING_STEP):
     print(str(i) + ", " + str(i+WINDOW_SIZE))
-    train, test = lstm_windows.window_traintest(i,i+WINDOW_SIZE)
+    train, test = lstm_windows.window_traintest(data, i, i+WINDOW_SIZE)
     loss, reconstruct, original = lstm_windows.lstm_windows(train, test)
     losses.append(loss)
     reconstructs.append(reconstruct)
@@ -122,14 +113,9 @@ threshold = np.mean(losses) + 2*np.std(losses) # beyond two std devs
 
 wstarts = np.arange(10, 1000-WINDOW_SIZE+1, ROLLING_STEP)
 windows = np.array(list(zip(wstarts, wstarts+WINDOW_SIZE)))
-anomalous_ind = [i for i, x in enumerate(losses > threshold) if x]
+wdata = tuple([None, losses, windows, np.array(reconstructs).reshape(1,-1).tolist(), np.array(origs).reshape(1,-1).tolist()])
 
-#plot reconstructions of high loss windows
-for i in anomalous_ind:
-    region = windows[i]
-    plt.figure()
-    lstm_window_plot.window_loss_plot(reconstructs[i], origs[i], start = region[0], stop=region[1], all=True, plot=True, legend=True)
-    plt.show()
+anomalous_ind = lstm_window_plot.plot_anomalous(wdata, "window_" + str(WINDOW_SIZE), save=False, show=True)
 
 filename = "windows" + str(WINDOW_SIZE) + "_ep" + str(EPOCHS) + "bs" + str(BATCH_SIZE) + ".txt"
 with open("lstm_windows_res/" + filename, "w") as outfile:
