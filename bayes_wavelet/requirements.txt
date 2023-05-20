@@ -1,0 +1,9 @@
+arviz
+matpltlib
+numpy
+pandas
+pymc
+seaborn
+jaxlib==0.4.7
+rich
+statsmodels
