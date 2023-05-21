@@ -1,3 +1,14 @@
+"""
+Wellington Management Anomaly Detection, Spring 2023
+
+This file utilizes the LSTM windows module in model/lstm_windows.py to plot the results
+saved from the training/testing process using brute force on the time series.
+These plots are saved into the directory lstm_windows_res.
+There exist global variables that can be changed to show and/or save certain figures.
+This file can be run with python3 plot_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE
+or python3 plot_windows.py which plots the results for window sizes [5, 10, 15, 20, 25, 50].
+"""
+
 import matplotlib.pyplot as plt
 from model.lstm_windows import LSTMWindowPlot
 import numpy as np

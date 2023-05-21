@@ -1,7 +1,7 @@
 """
 Wellington Management Anomaly Detection, Spring 2023
 
-This file utilizes the LSTM Autoencoder architecture to implement brute force LSTM anomaly detection.
+This file utilizes the LSTM windows module in model/lstm_windows.py to implement brute force LSTM anomaly detection.
 Dataset used: credit card transaction dataset, company 1 from data/featured_credit.csv
 Run with python3 run_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE
 Results are saved to lstm_windows_res.
@@ -62,9 +62,22 @@ companies = np.random.choice(credit_nozero.apply(lambda x: (x - x.mean())/x.std(
 np.random.seed(None)
 
 def standard_scale(x: pd.Series):
+    """
+    Standard scaler of the series.
+
+    :param x pd.Series: the series to scale
+    :return pd.Series: scales series
+    """
     return (x - x.mean())/x.std()
 
 def has_substr_in_list(s:str, l:list):
+    """
+    Checks for a substring in a list
+
+    :param s str: substring
+    :param l list: list to check in
+    :return bool: boolean of whether the substring is in the list 
+    """
     return not all(x not in s for x in l)
 
 features = featured_credit.loc[:,[col for col in featured_credit if ("_" in col) and (has_substr_in_list(col, companies))]]

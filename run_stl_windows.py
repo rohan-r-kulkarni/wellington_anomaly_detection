@@ -1,9 +1,9 @@
 """
 Wellington Management Anomaly Detection, Spring 2023
 
-This file utilizes the LSTM Autoencoder architecture to implement brute force LSTM anomaly detection.
+This file utilizes the LSTM windows module in model/lstm_windows.py to implement stl-assisted LSTM anomaly detection.
 Dataset used: credit card transaction dataset, company 1 from data/featured_credit.csv
-Run with python3 run_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE
+Run with python3 run_stl_windows.py BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE
 Results are saved to lstm_windows_res.
 """
 
@@ -32,15 +32,6 @@ if len(sys.argv) != 5:
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Set logging level to suppress INFO messages
 logging.getLogger('tensorflow').setLevel(logging.WARN) 
-
-"""
-standard settings: 
-
-BATCH_SIZE = 10
-EPOCHS = 30
-SEQ_SIZE = 5 #lookback window for LSTM
-WINDOW_SIZE = 10
-"""
 
 _, BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE = sys.argv
 BATCH_SIZE = int(BATCH_SIZE)
@@ -86,19 +77,9 @@ else:
 
 window_avg_resid = residuals.rolling(WINDOW_SIZE).mean().dropna() #drop NA means rolling ends on last day
 
-def reg_hist(plot_data):
-    data_mean, data_std = plot_data.mean(), plot_data.std()
-    cut_off = data_std * 2
-    lower, upper = data_mean - cut_off, data_mean + cut_off
+lstm_window_plot = LSTMWindowPlot()
 
-    sns.displot(plot_data, bins=30, kde=True) #kernel density estimation
-    plt.axvspan(xmin=lower, xmax=plot_data.min(), alpha=0.2, color='red')
-    plt.axvspan(xmin=upper, xmax=plot_data.max(), alpha=0.2, color='red')
-    plt.title("Resdiual Distribution, Highlighting Two Standard Deviations", fontsize=10)
-
-    return abs(plot_data-data_mean) > cut_off #beyond two std devs
-
-anomalous_resid = reg_hist(window_avg_resid.loc[:, "resid"].values)
+anomalous_resid = lstm_window_plot.reg_hist(window_avg_resid.loc[:, "resid"].values)
 fig = plt.gcf()
 fig.tight_layout()
 if SHOW_NOT_SAVE:
@@ -113,6 +94,12 @@ awindows = awindows.rename(columns={"date":"end_date"})
 awindows = awindows.assign(start_date = awindows.end_date - pd.Timedelta(days=WINDOW_SIZE)).loc[:, ["start_date", "end_date"]]
 
 def get_resid_from_dates(x):
+    """
+    Gets residual values for a given date, apply-able using pandas df.apply
+
+    :param x pd.Series: row-wise apply from df.apply
+    :return pd.Series: residual values
+    """
     start = x[0]
     end = x[1]
     start_index = np.where(residuals.index == start)[0][0]
@@ -169,7 +156,6 @@ model = LSTM_Model_Base(
         )
 model.compile(optimizer="adam", loss="mae")
 lstm_windows = LSTMWindows(model, BATCH_SIZE, EPOCHS, SEQ_SIZE, WINDOW_SIZE, ROLLING_STEP, N_FEATURE)
-lstm_window_plot = LSTMWindowPlot()
 
 checkpoint = 10
 for x in awindows.values:
