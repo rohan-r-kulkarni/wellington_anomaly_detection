@@ -16,9 +16,12 @@ class LSTMWindows():
         self.ROLLING_STEP = rolling_step
         self.N_FEATURE = n_feature
         
-    def lstm_windows(self, train_data, test_data):
+    def lstm_windows(self, train_data, test_data, train_only=False):
         history = self.model.fit(train_data, train_data,
                                     epochs=self.EPOCHS, batch_size=self.BATCH_SIZE)
+
+        if train_only:
+            return history
 
         pred = self.model(test_data)
         pred_reconstructed = reconstruction(pred, self.N_FEATURE)
