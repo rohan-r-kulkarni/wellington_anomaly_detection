@@ -32,6 +32,9 @@
   - `model_exec.py`: the main model execution file that contains
     - utility class `OutlierMetric` that enables the classification of outliers using different methods.
     - other helper functions that enable the execution of LSTM-AE models, see docstrings for documentation.
+- `run_windows.py`: runs the LSTM rolling windows brute force method for anomaly detection.
+- `run_stl_windows.py`: runs the STL-assisted LSTM rolling windows method for anomaly detection.
+- `plot_windows.py`: plots and/or saves results and analysis from a LSTM windows train/test session.
 - Bayesian and Wavelet models (`./bayes_wavelet`):
   - `readme.md`: readme for using these models.
   - `requirements.txt`: Python environment requirements for using these models.
@@ -54,6 +57,7 @@
   - `gen_datasets.py`: a caller file for functionalities in `data_generation.py`.
 - LSTM Model Artifacts (`./lstm_model`):
     - Contains Tensorflow/keras model saves, sessions, and artifacts for the deep learning models used.
+- `demo_2022.ipynb`: the 2022 demo notebook, kept for completeness.
 - Deprecated (`./deprecated`):
     - Contains deprecated but perhaps still useful code.
 
